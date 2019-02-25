@@ -21,7 +21,7 @@ ARG BUILD_VERSION
 
 WORKDIR $GOPATH/src
 
-RUN curl -fsSL https://github.com/jedisct1/dnscrypt-proxy/archive/${BUILD_VERSION}.tar.gz | tar xvz --strip 1 \
+RUN curl -fsSL https://github.com/jedisct1/dnscrypt-proxy/archive/${BUILD_VERSION}.tar.gz | tar xz --strip 1 \
 	&& cd dnscrypt-proxy && go build -ldflags="-s -w"
 
 # ----------------------------------------------------------------------------

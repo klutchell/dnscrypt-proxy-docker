@@ -29,5 +29,5 @@ after_success:
   # - test ${TRAVIS_TAG} =~ /^v\d+\.\d+\.\d+.*$/ || exit 0
   - echo ${DOCKER_PASSWORD} | docker login -u "${DOCKER_USERNAME}" --password-stdin
   - make push ARCH=${ARCH} DOCKER_REPO=${DOCKER_REPO}
-  - go get -v github.com/estesp/manifest-tool
+  - go get github.com/estesp/manifest-tool
   - make manifest DOCKER_REPO=${DOCKER_REPO}

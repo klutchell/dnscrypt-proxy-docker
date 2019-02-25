@@ -18,7 +18,7 @@
 ## Deployment
 
 ```bash
-docker run -p -p 53:53/udp klutchell/dnscrypt-proxy
+docker run -p 53:53/udp klutchell/dnscrypt-proxy
 ```
 
 ## Parameters

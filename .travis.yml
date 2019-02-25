@@ -13,8 +13,8 @@ branches:
 
 env:
   - ARCH=amd64
-  - ARCH=arm
-  - ARCH=arm64
+  - ARCH=arm32v6
+  - ARCH=arm64v8
 
 before_script:
   - docker run --rm --privileged multiarch/qemu-user-static:register --reset

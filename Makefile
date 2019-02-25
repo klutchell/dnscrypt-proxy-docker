@@ -85,7 +85,7 @@ qemu-user-static:
 ## Usage:
 ##    make build [PARAM1=] [PARAM2=] [PARAM3=]
 ## Optional parameters:
-##    ARCH               eg. amd64 or arm or arm64
+##    ARCH               eg. amd64 or arm32v6 or arm64v8
 ##    BUILD_OPTIONS      eg. --no-cache
 ##    DOCKER_REPO        eg. myrepo/myapp
 ##
@@ -104,7 +104,7 @@ build: qemu-user-static
 ## Usage:
 ##    make test [PARAM1=] [PARAM2=] [PARAM3=]
 ## Optional parameters:
-##    ARCH               eg. amd64 or arm or arm64
+##    ARCH               eg. amd64 or arm32v6 or arm64v8
 ##    DOCKER_REPO        eg. myrepo/myapp
 ##
 .PHONY: test
@@ -118,7 +118,7 @@ test: qemu-user-static
 ## Usage:
 ##    make push [PARAM1=] [PARAM2=] [PARAM3=]
 ## Optional parameters:
-##    ARCH               eg. amd64 or arm or arm64
+##    ARCH               eg. amd64 or arm32v6 or arm64v8
 ##    DOCKER_REPO        eg. myrepo/myapp
 ##
 .PHONY: push
@@ -148,7 +148,7 @@ manifest:
 ## Usage:
 ##    make release [PARAM1=] [PARAM2=] [PARAM3=]
 ## Optional parameters:
-##    ARCH               eg. amd64 or arm or arm64
+##    ARCH               eg. amd64 or arm32v6 or arm64v8
 ##    BUILD_OPTIONS      eg. --no-cache
 ##    DOCKER_REPO        eg. myrepo/myapp
 ##

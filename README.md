@@ -29,15 +29,15 @@ docker run -p -p 53:53/udp klutchell/dnscrypt-proxy
 ## Building
 
 ```bash
-# ARCH can be 'amd64', 'arm', or 'arm64'
-make build ARCH=arm
+# ARCH can be 'amd64', 'arm32v6', or 'arm64v8'
+make build ARCH=arm32v6
 ```
 
 ## Testing
 
 ```bash
-# ARCH can be 'amd64', 'arm', or 'arm64'
-make test ARCH=arm
+# ARCH can be 'amd64', 'arm32v6', or 'arm64v8'
+make test ARCH=arm32v6
 ```
 
 ## Usage

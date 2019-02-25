@@ -109,9 +109,9 @@ build: qemu-user-static
 ##
 .PHONY: test
 test: qemu-user-static
-	$(eval CONTAINER_ID=$(shell docker run --rm -d -p 5300:53/udp ${DOCKER_REPO}:${DOCKER_TAG}))
-	dig sigok.verteiltesysteme.net @127.0.0.1 -p 5300 | grep NOERROR || (docker stop ${CONTAINER_ID}; exit 1)
-	dig sigfail.verteiltesysteme.net @127.0.0.1 -p 5300 | grep SERVFAIL || (docker stop ${CONTAINER_ID}; exit 1)
+	$(eval CONTAINER_ID=$(shell docker run --rm -d -p 53:53/tcp -p 53:53/udp ${DOCKER_REPO}:${DOCKER_TAG}))
+	dig sigok.verteiltesysteme.net @127.0.0.1 | grep NOERROR || (docker stop ${CONTAINER_ID}; exit 1)
+	dig sigfail.verteiltesysteme.net @127.0.0.1 | grep SERVFAIL || (docker stop ${CONTAINER_ID}; exit 1)
 	@docker stop ${CONTAINER_ID}
 
 ## Push an image to the selected docker repo

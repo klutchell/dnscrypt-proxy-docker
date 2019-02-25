@@ -38,7 +38,7 @@ LABEL org.label-schema.name="klutchell/dnscrypt-proxy"
 LABEL org.label-schema.description="dnscrypt-proxy is a flexible DNS proxy, with support for encrypted DNS protocols"
 LABEL org.label-schema.url="https://github.com/jedisct1/dnscrypt-proxy"
 LABEL org.label-schema.vcs-url="https://github.com/klutchell/dnscrypt-proxy"
-LABEL org.label-schema.docker.cmd="docker run -p 53:53/udp klutchell/dnscrypt-proxy"
+LABEL org.label-schema.docker.cmd="docker run -p 53:53/tcp -p 53:53/udp klutchell/dnscrypt-proxy"
 LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
@@ -56,7 +56,7 @@ RUN sed -r "s/^listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
 
 RUN apk add --no-cache libc6-compat ca-certificates
 
-EXPOSE 53/udp
+EXPOSE 53/tcp 53/udp
 
 # run startup script
 CMD [ "dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml" ]

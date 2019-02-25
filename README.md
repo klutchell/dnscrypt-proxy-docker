@@ -1,6 +1,6 @@
 # unofficial dnscrypt-proxy docker image
 
-([![Build Status](https://travis-ci.com/klutchell/dnscrypt-proxy.svg?branch=master)](https://travis-ci.com/klutchell/dnscrypt-proxy)
+[![Build Status](https://travis-ci.com/klutchell/dnscrypt-proxy.svg?branch=master)](https://travis-ci.com/klutchell/dnscrypt-proxy)
 [![Docker Pulls](https://img.shields.io/docker/pulls/klutchell/dnscrypt-proxy.svg?style=flat)](https://hub.docker.com/r/klutchell/dnscrypt-proxy/)
 
 [dnscrypt-proxy](https://github.com/jedisct1/dnscrypt-proxy) is a flexible DNS proxy, with support for encrypted DNS protocols.
@@ -8,7 +8,7 @@
 ## Tags
 
 |tag|dnscrypt-proxy|image|
-|---|---|---|---|
+|---|---|---|
 |`latest`|[`2.0.19`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.19)|multi-arch manifest|
 |`2.0.19`|[`2.0.19`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.19)|multi-arch manifest|
 |`2.0.19-amd64`|[`2.0.19`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.19)|![Image Size](https://img.shields.io/microbadger/image-size/klutchell/dnscrypt-proxy/2.0.19-amd64.svg)|

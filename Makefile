@@ -89,10 +89,8 @@ qemu-aarch64-static:
 
 ## -- Parameters --
 
-## Provide a target architecture (optional)
-## eg. make ARCH=amd64
+## Select a target architecture (optional): amd64|arm32v6|arm64v8
 ## eg. make ARCH=arm32v6
-## eg. make ARCH=arm64v8
 ##
 .PHONY: ARCH
 

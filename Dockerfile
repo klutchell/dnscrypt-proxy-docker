@@ -21,8 +21,10 @@ ARG BUILD_VERSION=2.0.19
 
 WORKDIR $GOPATH/src
 
+# download specific release from github and compile for provided arch
 RUN curl -fsSL https://github.com/jedisct1/dnscrypt-proxy/archive/${BUILD_VERSION}.tar.gz | tar xz --strip 1 \
-	&& cd dnscrypt-proxy && go build -ldflags="-s -w"
+	&& cd dnscrypt-proxy && go build -ldflags="-s -w" -o $GOPATH/app/dnscrypt-proxy \
+	&& cp -a example-* $GOPATH/app/
 
 # ----------------------------------------------------------------------------
 
@@ -43,19 +45,29 @@ LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
+# copy binary and example config files from gobuild step
+COPY --from=gobuild /go/app /app
+
+# add app to path
+ENV PATH "/app:${PATH}"
+
+# install qemu binaries used for cross-compiling
 COPY --from=qemu qemu-arm-static qemu-aarch64-static /usr/bin/
-COPY --from=gobuild /go/src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/dnscrypt-proxy
-COPY --from=gobuild /go/src/dnscrypt-proxy/example-blacklist.txt /config/
-COPY --from=gobuild /go/src/dnscrypt-proxy/example-cloaking-rules.txt /config/
-COPY --from=gobuild /go/src/dnscrypt-proxy/example-dnscrypt-proxy.toml /config/
-COPY --from=gobuild /go/src/dnscrypt-proxy/example-forwarding-rules.txt /config/
-COPY --from=gobuild /go/src/dnscrypt-proxy/example-whitelist.txt /config/
 
-RUN sed -r "s/^listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
-	/config/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
-
+# install go and dnscrypt dependencies
 RUN apk add --no-cache libc6-compat ca-certificates
 
+# create directory for config files
+RUN mkdir /config
+
+# copy example config and change listening addresses to all ipv4 interfaces
+RUN sed -r "s/^listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
+	/app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
+
+# remove qemu binaries used for cross-compiling
+RUN rm /usr/bin/qemu-*-static
+
+# expose dns ports
 EXPOSE 53/tcp 53/udp
 
 # run startup script

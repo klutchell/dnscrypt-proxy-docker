@@ -79,6 +79,14 @@ help:
 qemu-user-static:
 	@docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
+qemu-arm-static:
+	wget https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-arm-static \
+	&& chmod +x qemu-arm-static
+
+qemu-aarch64-static:
+	wget https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-aarch64-static \
+	&& chmod +x qemu-aarch64-static
+
 ## -- Docker --
 
 ## Build an image for the selected platform
@@ -108,8 +116,11 @@ build: qemu-user-static
 ##    DOCKER_REPO        eg. myrepo/myapp
 ##
 .PHONY: test
-test: qemu-user-static
-	$(eval CONTAINER_ID=$(shell docker run --rm -d -p 53:53/tcp -p 53:53/udp ${DOCKER_REPO}:${DOCKER_TAG}))
+test: qemu-user-static qemu-arm-static qemu-aarch64-static
+	$(eval CONTAINER_ID=$(shell docker run --rm -d \
+		-v "$(CURDIR)/qemu-arm-static:/usr/bin/qemu-arm-static" \
+		-v "$(CURDIR)/qemu-aarch64-static:/usr/bin/qemu-aarch64-static" \
+		-p 53:53/tcp -p 53:53/udp ${DOCKER_REPO}:${DOCKER_TAG}))
 	dig sigok.verteiltesysteme.net @127.0.0.1 | grep NOERROR || (docker stop ${CONTAINER_ID}; exit 1)
 	dig sigfail.verteiltesysteme.net @127.0.0.1 | grep SERVFAIL || (docker stop ${CONTAINER_ID}; exit 1)
 	@docker stop ${CONTAINER_ID}

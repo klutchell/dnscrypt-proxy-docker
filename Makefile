@@ -46,34 +46,34 @@ DOCKER_TAG := ${VCS_TAG}-${GOARCH}
 .PHONY: help
 help:
 	@awk '{ \
-			if ($$0 ~ /^.PHONY: [a-zA-Z\-\_0-9]+$$/) { \
-				helpCommand = substr($$0, index($$0, ":") + 2); \
-				if (helpMessage) { \
-					printf "\033[36m%-20s\033[0m %s\n", \
-						helpCommand, helpMessage; \
-					helpMessage = ""; \
-				} \
-			} else if ($$0 ~ /^[a-zA-Z\-\_0-9.]+:/) { \
-				helpCommand = substr($$0, 0, index($$0, ":")); \
-				if (helpMessage) { \
-					printf "\033[36m%-20s\033[0m %s\n", \
-						helpCommand, helpMessage; \
-					helpMessage = ""; \
-				} \
-			} else if ($$0 ~ /^##/) { \
-				if (helpMessage) { \
-					helpMessage = helpMessage"\n                     "substr($$0, 3); \
-				} else { \
-					helpMessage = substr($$0, 3); \
-				} \
-			} else { \
-				if (helpMessage) { \
-					print "\n                     "helpMessage"\n" \
-				} \
+		if ($$0 ~ /^.PHONY: [a-zA-Z\-\_0-9]+$$/) { \
+			helpCommand = substr($$0, index($$0, ":") + 2); \
+			if (helpMessage) { \
+				printf "\033[36m%-20s\033[0m %s\n", \
+					helpCommand, helpMessage; \
 				helpMessage = ""; \
 			} \
-		}' \
-		$(MAKEFILE_LIST)
+		} else if ($$0 ~ /^[a-zA-Z\-\_0-9.]+:/) { \
+			helpCommand = substr($$0, 0, index($$0, ":")); \
+			if (helpMessage) { \
+				printf "\033[36m%-20s\033[0m %s\n", \
+					helpCommand, helpMessage; \
+				helpMessage = ""; \
+			} \
+		} else if ($$0 ~ /^##/) { \
+			if (helpMessage) { \
+				helpMessage = helpMessage"\n                     "substr($$0, 3); \
+			} else { \
+				helpMessage = substr($$0, 3); \
+			} \
+		} else { \
+			if (helpMessage) { \
+				print "\n                     "helpMessage"\n" \
+			} \
+			helpMessage = ""; \
+		} \
+	}' \
+	$(MAKEFILE_LIST)
 
 .PHONY: qemu-user-static
 qemu-user-static:
@@ -81,21 +81,40 @@ qemu-user-static:
 
 qemu-arm-static:
 	wget -q https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-arm-static \
-	&& chmod +x qemu-arm-static
+		&& chmod +x qemu-arm-static
 
 qemu-aarch64-static:
 	wget -q https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-aarch64-static \
-	&& chmod +x qemu-aarch64-static
+		&& chmod +x qemu-aarch64-static
+
+## -- Parameters --
+
+## Provide a target architecture (optional)
+## eg. make ARCH=amd64
+## eg. make ARCH=arm32v6
+## eg. make ARCH=arm64v8
+##
+.PHONY: ARCH
+
+## Provide additional docker build flags (optional)
+## eg. make BUILD_OPTIONS=--no-cache
+##
+.PHONY: BUILD_OPTIONS
+
+## Override default docker repo (optional)
+## eg. make DOCKER_REPO=myrepo/myapp
+.PHONY: DOCKER_REPO
 
 ## -- Docker --
 
+## Build, test, and push the image in one step
+## eg. make release [ARCH=] [BUILD_OPTIONS=] [DOCKER_REPO=]
+##
+.PHONY: release
+release: build test push
+
 ## Build an image for the selected platform
-## Usage:
-##    make build [PARAM1=] [PARAM2=] [PARAM3=]
-## Optional parameters:
-##    ARCH               eg. amd64 or arm32v6 or arm64v8
-##    BUILD_OPTIONS      eg. --no-cache
-##    DOCKER_REPO        eg. myrepo/myapp
+## eg. make build [ARCH=] [BUILD_OPTIONS=] [DOCKER_REPO=]
 ##
 .PHONY: build
 build: qemu-user-static
@@ -108,12 +127,8 @@ build: qemu-user-static
 		--build-arg VCS_REF \
 		--tag ${DOCKER_REPO}:${DOCKER_TAG} .
 
-## Test an image by running it locally and requesting DNSSEC lookups
-## Usage:
-##    make test [PARAM1=] [PARAM2=] [PARAM3=]
-## Optional parameters:
-##    ARCH               eg. amd64 or arm32v6 or arm64v8
-##    DOCKER_REPO        eg. myrepo/myapp
+## Test an image by running it locally and requesting DNS lookups
+## eg. make test [ARCH=] [DOCKER_REPO=]
 ##
 .PHONY: test
 test: qemu-user-static qemu-arm-static qemu-aarch64-static
@@ -125,22 +140,15 @@ test: qemu-user-static qemu-arm-static qemu-aarch64-static
 	dig sigfail.verteiltesysteme.net @127.0.0.1 | grep SERVFAIL || (docker stop ${CONTAINER_ID}; exit 1)
 	@docker stop ${CONTAINER_ID}
 
-## Push an image to the selected docker repo
-## Usage:
-##    make push [PARAM1=] [PARAM2=] [PARAM3=]
-## Optional parameters:
-##    ARCH               eg. amd64 or arm32v6 or arm64v8
-##    DOCKER_REPO        eg. myrepo/myapp
+## Push an image to the configured docker repo
+## eg. make push [ARCH=] [DOCKER_REPO=]
 ##
 .PHONY: push
 push:
 	@docker push ${DOCKER_REPO}:${DOCKER_TAG}
 
 ## Create and push a multi-arch manifest list
-## Usage:
-##    make manifest [PARAM1=] [PARAM2=] [PARAM3=]
-## Optional parameters:
-##    DOCKER_REPO        eg. myrepo/myapp
+## eg. make manifest [DOCKER_REPO=]
 ##
 .PHONY: manifest
 manifest:
@@ -154,14 +162,3 @@ manifest:
 		--template ${DOCKER_REPO}:${VCS_TAG}-ARCH \
 		--target ${DOCKER_REPO}:latest \
 		--ignore-missing
-
-## Build, test, and push the image in one step
-## Usage:
-##    make release [PARAM1=] [PARAM2=] [PARAM3=]
-## Optional parameters:
-##    ARCH               eg. amd64 or arm32v6 or arm64v8
-##    BUILD_OPTIONS      eg. --no-cache
-##    DOCKER_REPO        eg. myrepo/myapp
-##
-.PHONY: release
-release: build test push

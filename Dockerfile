@@ -4,11 +4,15 @@ FROM alpine as qemu
 
 RUN apk add --no-cache curl
 
-RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-arm-static -O \
-	&& chmod +x qemu-arm-static
+ARG QEMU_VERSION=3.1.0-2
+ARG QEMU_ARCHS="arm aarch64"
 
-RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-aarch64-static -O \
-	&& chmod +x qemu-aarch64-static
+RUN for i in ${QEMU_ARCHS}; \
+	do \
+	curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-${i}-static.tar.gz \
+	| tar zxvf - -C /usr/bin; \
+	done \
+	&& chmod +x /usr/bin/qemu-*
 
 # ----------------------------------------------------------------------------
 
@@ -52,7 +56,7 @@ COPY --from=gobuild /go/app /app
 ENV PATH "/app:${PATH}"
 
 # install qemu binaries used for cross-compiling
-COPY --from=qemu qemu-arm-static qemu-aarch64-static /usr/bin/
+COPY --from=qemu /usr/bin/qemu-* /usr/bin/
 
 # install go and dnscrypt dependencies
 RUN apk add --no-cache libc6-compat ca-certificates
@@ -65,7 +69,7 @@ RUN sed -r "s/^listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
 	/app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
 
 # remove qemu binaries used for cross-compiling
-RUN rm /usr/bin/qemu-*-static
+RUN rm /usr/bin/qemu-*
 
 # expose dns ports
 EXPOSE 53/tcp 53/udp

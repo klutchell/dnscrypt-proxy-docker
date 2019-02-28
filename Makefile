@@ -17,11 +17,6 @@ GOARCH := arm
 GOARM := 6
 endif
 
-ifeq "${ARCH}" "arm32v7"
-GOARCH := arm
-GOARM := 7
-endif
-
 ifeq "${ARCH}" "arm64v8"
 GOARCH := arm64
 GOARM :=

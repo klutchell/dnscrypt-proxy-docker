@@ -9,7 +9,11 @@
 
 |tag|dnscrypt-proxy|image|
 |---|---|---|
-|`latest`|[`2.0.19`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.19)|[`manifest-v2-2`](https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list)|
+|`latest`|[`2.0.20`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.20)|[`manifest-v2-2`](https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list)|
+|`2.0.20`|[`2.0.20`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.20)|[`manifest-v2-2`](https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list)|
+|`2.0.20-amd64`|[`2.0.20`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.20)|[![](https://images.microbadger.com/badges/image/klutchell/dnscrypt-proxy:2.0.20-amd64.svg)](https://microbadger.com/images/klutchell/dnscrypt-proxy:2.0.20-amd64)|
+|`2.0.20-arm`|[`2.0.20`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.20)|[![](https://images.microbadger.com/badges/image/klutchell/dnscrypt-proxy:2.0.20-arm.svg)](https://microbadger.com/images/klutchell/dnscrypt-proxy:2.0.20-arm)|
+|`2.0.20-arm64`|[`2.0.20`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.20)|[![](https://images.microbadger.com/badges/image/klutchell/dnscrypt-proxy:2.0.20-arm64.svg)](https://microbadger.com/images/klutchell/dnscrypt-proxy:2.0.20-arm64)|
 |`2.0.19`|[`2.0.19`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.19)|[`manifest-v2-2`](https://docs.docker.com/registry/spec/manifest-v2-2/#manifest-list)|
 |`2.0.19-amd64`|[`2.0.19`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.19)|[![](https://images.microbadger.com/badges/image/klutchell/dnscrypt-proxy:2.0.19-amd64.svg)](https://microbadger.com/images/klutchell/dnscrypt-proxy:2.0.19-amd64)|
 |`2.0.19-arm`|[`2.0.19`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.19)|[![](https://images.microbadger.com/badges/image/klutchell/dnscrypt-proxy:2.0.19-arm.svg)](https://microbadger.com/images/klutchell/dnscrypt-proxy:2.0.19-arm)|

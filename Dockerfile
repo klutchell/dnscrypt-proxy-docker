@@ -1,11 +1,14 @@
 ARG ARCH=amd64
 
-FROM alpine as qemu
+FROM alpine:3.9.2 as qemu
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl=7.64.0-r1
 
 ARG QEMU_VERSION=3.1.0-2
 ARG QEMU_ARCHS="arm aarch64"
+
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
 RUN for i in ${QEMU_ARCHS}; \
 	do \
@@ -16,7 +19,7 @@ RUN for i in ${QEMU_ARCHS}; \
 
 # ----------------------------------------------------------------------------
 
-FROM golang as gobuild
+FROM golang:1.12.0 as gobuild
 
 ARG GOOS=linux
 ARG GOARCH=amd64
@@ -25,10 +28,16 @@ ARG BUILD_VERSION=2.0.20
 
 WORKDIR $GOPATH/src
 
+# https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # download specific release from github and compile for provided arch
-RUN curl -fsSL https://github.com/jedisct1/dnscrypt-proxy/archive/${BUILD_VERSION}.tar.gz | tar xz --strip 1 \
-	&& cd dnscrypt-proxy && go build -ldflags="-s -w" -o $GOPATH/app/dnscrypt-proxy \
-	&& cp -a example-* $GOPATH/app/
+RUN curl -fsSL "https://github.com/jedisct1/dnscrypt-proxy/archive/${BUILD_VERSION}.tar.gz" | tar xz --strip 1
+
+WORKDIR $GOPATH/src/dnscrypt-proxy
+
+RUN go build -ldflags="-s -w" -o "$GOPATH/app/dnscrypt-proxy" \
+	&& cp -a example-* "$GOPATH/app/"
 
 # ----------------------------------------------------------------------------
 
@@ -59,7 +68,7 @@ ENV PATH "/app:${PATH}"
 COPY --from=qemu /usr/bin/qemu-* /usr/bin/
 
 # install go and dnscrypt dependencies
-RUN apk add --no-cache libc6-compat ca-certificates
+RUN apk add --no-cache libc6-compat=1.1.20-r3 ca-certificates=20190108-r0
 
 # create directory for config files
 RUN mkdir /config

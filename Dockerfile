@@ -68,13 +68,19 @@ ENV PATH "/app:${PATH}"
 COPY --from=qemu /usr/bin/qemu-* /usr/bin/
 
 # install go and dnscrypt dependencies
-RUN apk add --no-cache libc6-compat=1.1.20-r3 ca-certificates=20190108-r0
+RUN apk add --no-cache libc6-compat=1.1.20-r4 ca-certificates=20190108-r0
 
 # create directory for config files
 RUN mkdir /config
 
-# copy example config and change listening addresses to all ipv4 interfaces
-RUN sed -r "s/^listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
+# copy example config change a few defaults:
+# - listen on all ipv4 interfaces
+# - require dnssec from upstream servers
+# - require nolog from upstream servers
+RUN sed -r \
+	-e "s/^#?listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
+	-e "s/^#?require_dnssec = .+$/require_dnssec = true/" \
+	-e "s/^#?require_nolog = .+$/require_nolog = true/" \
 	/app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
 
 # remove qemu binaries used for cross-compiling

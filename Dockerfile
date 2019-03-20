@@ -78,9 +78,9 @@ RUN mkdir /config
 # - require dnssec from upstream servers
 # - require nolog from upstream servers
 RUN sed -r \
-	-e "s/^#?listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
-	-e "s/^#?require_dnssec = .+$/require_dnssec = true/" \
-	-e "s/^#?require_nolog = .+$/require_nolog = true/" \
+	-e "s/^(# )?listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
+	-e "s/^(# )?require_dnssec = .+$/require_dnssec = true/" \
+	-e "s/^(# )?require_nolog = .+$/require_nolog = true/" \
 	/app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
 
 # remove qemu binaries used for cross-compiling

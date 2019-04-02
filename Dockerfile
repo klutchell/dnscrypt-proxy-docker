@@ -5,17 +5,14 @@ FROM alpine:3.9.2 as qemu
 RUN apk add --no-cache curl=7.64.0-r1
 
 ARG QEMU_VERSION=3.1.0-2
-ARG QEMU_ARCHS="arm aarch64"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
-RUN for i in ${QEMU_ARCHS}; \
-	do \
-	curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-${i}-static.tar.gz \
-	| tar zxvf - -C /usr/bin; \
-	done \
-	&& chmod +x /usr/bin/qemu-*
+RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-arm-static.tar.gz | tar zxvf - -C /usr/bin
+RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-aarch64-static.tar.gz | tar zxvf - -C /usr/bin
+
+RUN chmod +x /usr/bin/qemu-*
 
 # ----------------------------------------------------------------------------
 
@@ -24,7 +21,7 @@ FROM golang:1.12.0 as gobuild
 ARG GOOS=linux
 ARG GOARCH=amd64
 ARG GOARM
-ARG BUILD_VERSION=2.0.21
+ARG BUILD_VERSION=2.0.22
 
 WORKDIR $GOPATH/src
 

@@ -25,10 +25,10 @@ endif
 # these values are used for container labels at build time
 BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%SZ'))
 # BUILD_VERSION := $(strip $(shell git describe --tags --always --dirty))
-BUILD_VERSION := 2.0.21
+BUILD_VERSION := 2.0.22
 VCS_REF := $(strip $(shell git rev-parse --short HEAD))
 # VCS_TAG := $(strip $(shell git describe --abbrev=0 --tags))
-VCS_TAG = 2.0.21
+VCS_TAG = 2.0.22
 DOCKER_TAG := ${VCS_TAG}-${GOARCH}
 
 .DEFAULT_GOAL := build

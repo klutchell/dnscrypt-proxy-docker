@@ -9,7 +9,11 @@
 
 |tag|dnscrypt-proxy|arch|
 |---|---|---|
-|`latest`, `2.0.21`|[`2.0.21`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.21)|`amd64`, `arm32v6`, `arm64v8`|
+|`latest`, `2.0.22`|[`2.0.22`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.22)|`amd64`, `arm32v6`, `arm64v8`|
+|`2.0.22-amd64`|[`2.0.22`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.22)|`amd64`|
+|`2.0.22-arm`|[`2.0.22`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.22)|`arm32v6`|
+|`2.0.22-arm64`|[`2.0.22`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.22)|`arm64v8`|
+|`2.0.21`|[`2.0.21`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.21)|`amd64`, `arm32v6`, `arm64v8`|
 |`2.0.21-amd64`|[`2.0.21`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.21)|`amd64`|
 |`2.0.21-arm`|[`2.0.21`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.21)|`arm32v6`|
 |`2.0.21-arm64`|[`2.0.21`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.21)|`arm64v8`|

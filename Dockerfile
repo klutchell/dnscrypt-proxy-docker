@@ -4,7 +4,7 @@ FROM alpine:3.9.2 as qemu
 
 RUN apk add --no-cache curl=7.64.0-r1
 
-ARG QEMU_VERSION=3.1.0-2
+ARG QEMU_VERSION=4.0.0
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]

@@ -75,11 +75,11 @@ qemu-user-static:
 	@docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
 qemu-arm-static:
-	wget -q https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-arm-static \
+	wget -q https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-arm-static \
 		&& chmod +x qemu-arm-static
 
 qemu-aarch64-static:
-	wget -q https://github.com/multiarch/qemu-user-static/releases/download/v3.1.0-2/qemu-aarch64-static \
+	wget -q https://github.com/multiarch/qemu-user-static/releases/download/v4.0.0/qemu-aarch64-static \
 		&& chmod +x qemu-aarch64-static
 
 ## -- Parameters --

@@ -7,9 +7,8 @@ RUN apk add --no-cache curl=7.64.0-r1
 ARG QEMU_VERSION=4.0.0
 ARG QEMU_BINARY=qemu-x86_64-static
 
-RUN if [ -n "${QEMU_BINARY}" ]; then \
-	curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/${QEMU_BINARY} \
-	-o /usr/bin/${QEMU_BINARY} && chmod +x /usr/bin/${QEMU_BINARY}; fi
+RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/${QEMU_BINARY} \
+	-o /usr/bin/${QEMU_BINARY} && chmod +x /usr/bin/${QEMU_BINARY}
 
 # ----------------------------------------------------------------------------
 

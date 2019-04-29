@@ -15,7 +15,7 @@ BUILD_OPTIONS +=
 
 .PHONY: all build amd64 arm arm64 clean test push manifest help
 
-all: build test ## Build and run tests for all platforms
+all: amd64 arm arm64 ## Build and run tests for all platforms
 
 build: build-amd64 build-arm build-arm64 ## Build for all platforms
 

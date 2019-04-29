@@ -2,11 +2,13 @@ ARG ARCH=amd64
 
 FROM alpine:3.9.2 as qemu
 
-RUN apk add --no-cache curl=7.64.0-r1
-
 ARG QEMU_VERSION=4.0.0
 ARG QEMU_BINARY=qemu-x86_64-static
 
+# install curl
+RUN apk add --no-cache curl=7.64.0-r1
+
+# download qemu binary for provided arch and set execute bit
 RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/${QEMU_BINARY} \
 	-o /usr/bin/${QEMU_BINARY} && chmod +x /usr/bin/${QEMU_BINARY}
 
@@ -24,18 +26,19 @@ WORKDIR $GOPATH/src
 # https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# download specific release from github and compile for provided arch
+# download specific release from github
 RUN curl -fsSL "https://github.com/jedisct1/dnscrypt-proxy/archive/${BUILD_VERSION}.tar.gz" | tar xz --strip 1
 
+# switch to project source
 WORKDIR $GOPATH/src/dnscrypt-proxy
 
-RUN go build -ldflags="-s -w" -o "$GOPATH/app/dnscrypt-proxy" \
-	&& cp -a example-* "$GOPATH/app/"
+# cross-compile with golang
+RUN go build -v -ldflags="-s -w" -o "$GOPATH/app/dnscrypt-proxy" && cp -a example-* "$GOPATH/app/"
 
 # create directory for config files
 RUN mkdir /config
 
-# copy example config change a few defaults:
+# copy example config but change a few default values:
 # - listen on all ipv4 interfaces
 # - require dnssec from upstream servers
 # - require nolog from upstream servers
@@ -75,11 +78,11 @@ COPY --from=gobuild /config /config
 COPY healthcheck.sh /
 RUN chmod +x healthcheck.sh
 
+# install golang, dnscrypt, and healthcheck dependencies
+RUN apk add --no-cache libc6-compat=1.1.20-r4 ca-certificates=20190108-r0 drill=1.7.0-r2
+
 # add app to path
 ENV PATH "/app:${PATH}"
-
-# install go and dnscrypt dependencies
-RUN apk add --no-cache libc6-compat=1.1.20-r4 ca-certificates=20190108-r0 drill=1.7.0-r2
 
 # expose dns ports
 EXPOSE 53/tcp 53/udp
@@ -87,4 +90,5 @@ EXPOSE 53/tcp 53/udp
 # run startup script
 CMD [ "dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml" ]
 
+# set default healthcheck interval
 HEALTHCHECK --interval=30s --retries=3 --start-period=5s --timeout=30s CMD [ "/healthcheck.sh" ]

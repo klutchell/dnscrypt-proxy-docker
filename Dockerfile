@@ -5,14 +5,11 @@ FROM alpine:3.9.2 as qemu
 RUN apk add --no-cache curl=7.64.0-r1
 
 ARG QEMU_VERSION=4.0.0
+ARG QEMU_BINARY=qemu-x86_64-static
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/ash", "-o", "pipefail", "-c"]
-
-RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-arm-static.tar.gz | tar zxvf - -C /usr/bin
-RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/qemu-aarch64-static.tar.gz | tar zxvf - -C /usr/bin
-
-RUN chmod +x /usr/bin/qemu-*
+RUN if [ -n "${QEMU_BINARY}" ]; then \
+	curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/${QEMU_BINARY} \
+	-o /usr/bin/${QEMU_BINARY} && chmod +x /usr/bin/${QEMU_BINARY}; fi
 
 # ----------------------------------------------------------------------------
 
@@ -36,6 +33,19 @@ WORKDIR $GOPATH/src/dnscrypt-proxy
 RUN go build -ldflags="-s -w" -o "$GOPATH/app/dnscrypt-proxy" \
 	&& cp -a example-* "$GOPATH/app/"
 
+# create directory for config files
+RUN mkdir /config
+
+# copy example config change a few defaults:
+# - listen on all ipv4 interfaces
+# - require dnssec from upstream servers
+# - require nolog from upstream servers
+RUN sed -r \
+	-e "s/^(# )?listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
+	-e "s/^(# )?require_dnssec = .+$/require_dnssec = true/" \
+	-e "s/^(# )?require_nolog = .+$/require_nolog = true/" \
+	/go/app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
+
 # ----------------------------------------------------------------------------
 
 FROM ${ARCH}/alpine:3.9
@@ -55,36 +65,27 @@ LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
+# copy qemu binaries used for cross-compiling
+COPY --from=qemu /usr/bin/qemu-* /usr/bin/
+
 # copy binary and example config files from gobuild step
 COPY --from=gobuild /go/app /app
+COPY --from=gobuild /config /config
+
+# copy healthcheck script to root
+COPY healthcheck.sh /
+RUN chmod +x healthcheck.sh
 
 # add app to path
 ENV PATH "/app:${PATH}"
 
-# install qemu binaries used for cross-compiling
-COPY --from=qemu /usr/bin/qemu-* /usr/bin/
-
 # install go and dnscrypt dependencies
-RUN apk add --no-cache libc6-compat=1.1.20-r4 ca-certificates=20190108-r0
-
-# create directory for config files
-RUN mkdir /config
-
-# copy example config change a few defaults:
-# - listen on all ipv4 interfaces
-# - require dnssec from upstream servers
-# - require nolog from upstream servers
-RUN sed -r \
-	-e "s/^(# )?listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
-	-e "s/^(# )?require_dnssec = .+$/require_dnssec = true/" \
-	-e "s/^(# )?require_nolog = .+$/require_nolog = true/" \
-	/app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
-
-# remove qemu binaries used for cross-compiling
-RUN rm /usr/bin/qemu-*
+RUN apk add --no-cache libc6-compat=1.1.20-r4 ca-certificates=20190108-r0 drill=1.7.0-r2
 
 # expose dns ports
 EXPOSE 53/tcp 53/udp
 
 # run startup script
 CMD [ "dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml" ]
+
+HEALTHCHECK --interval=30s --retries=3 --start-period=5s --timeout=30s CMD [ "/healthcheck.sh" ]

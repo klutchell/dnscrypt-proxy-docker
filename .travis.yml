@@ -13,21 +13,20 @@ branches:
 
 env:
   - ARCH=amd64
-  - ARCH=arm32v6
-  - ARCH=arm64v8
+  - ARCH=arm
+  - ARCH=arm64
+
+install:
+  - go get github.com/estesp/manifest-tool
 
 before_script:
-  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+  - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 
 script:
-  - make build ARCH=${ARCH} DOCKER_REPO=${DOCKER_REPO}
-  - make test ARCH=${ARCH} DOCKER_REPO=${DOCKER_REPO}
+  - make ${ARCH} DOCKER_REPO=${DOCKER_REPO}
 
 after_success:
-  # the following test will make sure we deploy only when a new git tag is pushed
-  # otherwise it will deploy on every push
+  # optionally deploy only when a new git tag is pushed
   # - if [[ ${TRAVIS_TAG} =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]] ; then echo deploying tag ${TRAVIS_TAG} ; else exit 0 ; fi
-  - docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-  - make push ARCH=${ARCH} DOCKER_REPO=${DOCKER_REPO}
-  - go get github.com/estesp/manifest-tool
+  - make push-${ARCH} DOCKER_REPO=${DOCKER_REPO}
   - make manifest DOCKER_REPO=${DOCKER_REPO}

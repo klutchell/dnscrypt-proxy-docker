@@ -94,7 +94,7 @@ push-arm:
 	docker push ${DOCKER_REPO}:${VCS_TAG}-arm
 
 push-arm64:
-	docker push ${DOCKER_REPO}:${VCS_TAG}arm64
+	docker push ${DOCKER_REPO}:${VCS_TAG}-arm64
 
 manifest-tag:
 	manifest-tool push from-args \

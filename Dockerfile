@@ -84,9 +84,6 @@ RUN apk add --no-cache libc6-compat=1.1.20-r4 ca-certificates=20190108-r0 drill=
 # add app to path
 ENV PATH "/app:${PATH}"
 
-# expose dns ports
-EXPOSE 53/tcp 53/udp
-
 # run startup script
 CMD [ "dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml" ]
 

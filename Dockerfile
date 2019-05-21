@@ -88,4 +88,4 @@ ENV PATH "/app:${PATH}"
 CMD [ "dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml" ]
 
 # set default healthcheck interval
-HEALTHCHECK --interval=30s --retries=3 --start-period=5s --timeout=30s CMD [ "/healthcheck.sh" ]
+# HEALTHCHECK --interval=30s --retries=3 --start-period=5s --timeout=30s CMD [ "/healthcheck.sh" ]

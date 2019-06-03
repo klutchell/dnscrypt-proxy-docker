@@ -9,10 +9,10 @@
 
 |tag|dnscrypt-proxy|arch|
 |---|---|---|
-|`latest`, `2.0.23`|[`2.0.23`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.23)|`amd64`, `arm32v6`, `arm64v8`|
-|`2.0.23-amd64`|[`2.0.23`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.23)|`amd64`|
-|`2.0.23-arm`|[`2.0.23`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.23)|`arm32v6`|
-|`2.0.23-arm64`|[`2.0.23`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.23)|`arm64v8`|
+|`latest`, `2.0.24`|[`2.0.24`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.24)|`amd64`, `arm32v6`, `arm64v8`|
+|`2.0.24-amd64`|[`2.0.24`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.24)|`amd64`|
+|`2.0.24-arm`|[`2.0.24`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.24)|`arm32v6`|
+|`2.0.24-arm64`|[`2.0.24`](https://github.com/jedisct1/dnscrypt-proxy/releases/tag/2.0.24)|`arm64v8`|
 
 ## Deployment
 

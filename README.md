@@ -40,17 +40,16 @@ make test
 
 ## Usage
 
-Check out the official dnscrypt-proxy project wiki
-
-* https://github.com/jedisct1/dnscrypt-proxy/wiki
+Official project wiki:
+https://github.com/jedisct1/dnscrypt-proxy/wiki
 
 ## Author
 
-Kyle Harding <kylemharding@gmail.com>
+Kyle Harding: https://github.com/klutchell
 
 ## Contributing
 
-Feel free to send an email or submit a pull request with any features, fixes, or changes!
+Please open an issue or submit a pull request with any features, fixes, or changes.
 
 ## Acknowledgments
 

@@ -56,7 +56,7 @@ ARG BUILD_DATE
 ARG BUILD_VERSION
 ARG VCS_REF
 
-LABEL maintainer="kylemharding@gmail.com"
+LABEL maintainer="Kyle Harding: https://github.com/klutchell"
 LABEL org.label-schema.schema-version="1.0"
 LABEL org.label-schema.name="klutchell/dnscrypt-proxy"
 LABEL org.label-schema.description="dnscrypt-proxy is a flexible DNS proxy, with support for encrypted DNS protocols"

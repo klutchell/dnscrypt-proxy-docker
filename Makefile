@@ -2,10 +2,10 @@
 DOCKER_REPO := klutchell/dnscrypt-proxy
 BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%SZ'))
 # BUILD_VERSION := $(strip $(shell git describe --tags --always --dirty))
-BUILD_VERSION := 2.0.24
+BUILD_VERSION := 2.0.25
 VCS_REF := $(strip $(shell git rev-parse --short HEAD))
 # VCS_TAG := $(strip $(shell git describe --abbrev=0 --tags))
-VCS_TAG := 2.0.24
+VCS_TAG := 2.0.25
 
 BUILD_OPTIONS +=
 

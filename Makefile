@@ -99,20 +99,20 @@ test-arm64v8: qemu-user-static
 	docker run --rm ${DOCKER_REPO}:arm64v8-${VCS_TAG} /healthcheck.sh
 
 clean-amd64:
-	docker image rm ${DOCKER_REPO}:amd64-${VCS_TAG}
-	docker image rm ${DOCKER_REPO}:amd64-latest
+	-docker image rm ${DOCKER_REPO}:amd64-${VCS_TAG}
+	-docker image rm ${DOCKER_REPO}:amd64-latest
 
 clean-arm32v6:
-	docker image rm ${DOCKER_REPO}:arm32v6-${VCS_TAG}
-	docker image rm ${DOCKER_REPO}:arm32v6-latest
+	-docker image rm ${DOCKER_REPO}:arm32v6-${VCS_TAG}
+	-docker image rm ${DOCKER_REPO}:arm32v6-latest
 
 clean-arm32v7:
-	docker image rm ${DOCKER_REPO}:arm32v7-${VCS_TAG}
-	docker image rm ${DOCKER_REPO}:arm32v6-latest
+	-docker image rm ${DOCKER_REPO}:arm32v7-${VCS_TAG}
+	-docker image rm ${DOCKER_REPO}:arm32v7-latest
 
 clean-arm64v8:
-	docker image rm ${DOCKER_REPO}:arm64v8-${VCS_TAG}
-	docker image rm ${DOCKER_REPO}:arm64v8-latest
+	-docker image rm ${DOCKER_REPO}:arm64v8-${VCS_TAG}
+	-docker image rm ${DOCKER_REPO}:arm64v8-latest
 
 push-amd64:
 	docker push ${DOCKER_REPO}:amd64-${VCS_TAG}

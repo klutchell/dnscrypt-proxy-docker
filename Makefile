@@ -43,9 +43,11 @@ endif
 
 .EXPORT_ALL_VARIABLES:
 
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := all
 
-.PHONY: build test clean push manifest help
+.PHONY: all release build test clean push manifest help
+
+all: clean build test ## Clean, build, and test ARCH image
 
 release: clean build test push ## Clean, build, test, and push ARCH image
 

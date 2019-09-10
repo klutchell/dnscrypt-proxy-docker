@@ -23,10 +23,10 @@ install:
   - docker --version
 
 script:
-  - make build ARCH=amd64 DOCKER_REPO=${DOCKER_REPO}
-  - make build ARCH=arm32v6 DOCKER_REPO=${DOCKER_REPO}
-  - make build ARCH=arm32v7 DOCKER_REPO=${DOCKER_REPO}
-  - make build ARCH=arm64v8 DOCKER_REPO=${DOCKER_REPO}
+  - make all ARCH=amd64 DOCKER_REPO=${DOCKER_REPO}
+  - make all ARCH=arm32v6 DOCKER_REPO=${DOCKER_REPO}
+  - make all ARCH=arm32v7 DOCKER_REPO=${DOCKER_REPO}
+  - make all ARCH=arm64v8 DOCKER_REPO=${DOCKER_REPO}
 
 after_success:
   # - if [[ ${TRAVIS_TAG} =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]] ; then echo deploying tag ${TRAVIS_TAG} ; else exit 0 ; fi

@@ -13,10 +13,14 @@ branches:
 before_install:
   - mkdir -p ${HOME}/.docker
   - echo '{"experimental":"enabled"}' | tee ${HOME}/.docker/config.json # needed to use docker manifest
-  - sudo service docker restart
 
 install:
-  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
+  - docker --version
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+  - docker --version
 
 script:
   - make all DOCKER_REPO=${DOCKER_REPO}

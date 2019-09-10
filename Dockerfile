@@ -6,7 +6,7 @@ ARG QEMU_VERSION=4.0.0
 ARG QEMU_BINARY=qemu-x86_64-static
 
 # install curl
-RUN apk add --no-cache curl=7.64.0-r1
+RUN apk add --no-cache curl=7.64.0-r2
 
 # download qemu binary for provided arch and set execute bit
 RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/${QEMU_BINARY} \
@@ -19,7 +19,8 @@ FROM golang:1.12.0 as gobuild
 ARG GOOS=linux
 ARG GOARCH=amd64
 ARG GOARM
-ARG BUILD_VERSION=2.0.25
+ARG CGO_ENABLED=0
+ARG BUILD_VERSION=2.0.27
 
 WORKDIR $GOPATH/src
 
@@ -79,7 +80,7 @@ COPY healthcheck.sh /
 RUN chmod +x healthcheck.sh
 
 # install golang, dnscrypt, and healthcheck dependencies
-RUN apk add --no-cache libc6-compat=1.1.20-r4 ca-certificates=20190108-r0 drill=1.7.0-r2
+RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2
 
 # add app to path
 ENV PATH "/app:${PATH}"

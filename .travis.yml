@@ -4,28 +4,24 @@
 # - DOCKER_PASSWORD
 
 services: docker
-language: go
 
 branches:
   only:
     - master
     - /^v\d+\.\d+\.\d+.*$/
 
-env:
-  - ARCH=amd64
-  - ARCH=arm
-  - ARCH=arm64
+before_install:
+  - mkdir -p ${HOME}/.docker
+  - echo '{"experimental":"enabled"}' | tee ${HOME}/.docker/config.json # needed to use docker manifest
+  - sudo service docker restart
 
 install:
-  - go get -v github.com/estesp/manifest-tool
-
-before_script:
-  - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
 script:
-  - make ${ARCH} DOCKER_REPO=${DOCKER_REPO}
+  - make all DOCKER_REPO=${DOCKER_REPO}
 
 after_success:
   # - if [[ ${TRAVIS_TAG} =~ ^v[0-9]+\.[0-9]+\.[0-9]+.*$ ]] ; then echo deploying tag ${TRAVIS_TAG} ; else exit 0 ; fi
-  - make push-${ARCH} DOCKER_REPO=${DOCKER_REPO}
-  - make manifest DOCKER_REPO=${DOCKER_REPO}
+  - echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+  - make push DOCKER_REPO=${DOCKER_REPO}

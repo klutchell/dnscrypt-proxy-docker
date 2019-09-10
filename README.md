@@ -43,12 +43,11 @@ make test
 
 ## Usage
 
-Official project wiki:
-https://github.com/jedisct1/dnscrypt-proxy/wiki
+Official project wiki: <https://github.com/jedisct1/dnscrypt-proxy/wiki>
 
 ## Author
 
-Kyle Harding: https://klutchell.dev
+Kyle Harding: <https://klutchell.dev>
 
 ## Contributing
 
@@ -56,7 +55,7 @@ Please open an issue or submit a pull request with any features, fixes, or chang
 
 ## Acknowledgments
 
-* https://github.com/jedisct1/dnscrypt-proxy
+* <https://github.com/jedisct1/dnscrypt-proxy>
 
 ## License
 

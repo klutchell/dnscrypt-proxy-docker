@@ -14,6 +14,7 @@
 - `arm64v8-latest`, `arm64v8-2.0.27`
 - `i386-latest`, `i386-2.0.27`
 - `ppc64le-latest`, `ppc64le-2.0.27`
+- ~~`s390x-latest`, `s390x-2.0.27`~~
 
 ## Deployment
 
@@ -33,7 +34,7 @@ docker run -p 53:5053/udp klutchell/dnscrypt-proxy
 # print makefile usage
 make help
 
-# ARCH can be amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le, s390x
+# ARCH can be amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le
 # and is emulated on top of any host architechture with qemu
 make build ARCH=arm32v6
 

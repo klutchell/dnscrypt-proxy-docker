@@ -1,51 +1,51 @@
 # unofficial dnscrypt-proxy docker image
 
-[![Build Status](https://travis-ci.com/klutchell/dnscrypt-proxy.svg?branch=master)](https://travis-ci.com/klutchell/dnscrypt-proxy)
-[![Docker Pulls](https://img.shields.io/docker/pulls/klutchell/dnscrypt-proxy.svg?style=flat)](https://hub.docker.com/r/klutchell/dnscrypt-proxy/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/klutchell/dnscrypt-proxy.svg?style=flat-square)](https://hub.docker.com/r/klutchell/dnscrypt-proxy/)
+[![Docker Stars](https://img.shields.io/docker/stars/klutchell/dnscrypt-proxy.svg?style=flat-square)](https://hub.docker.com/r/klutchell/dnscrypt-proxy/)
 
-[dnscrypt-proxy](https://github.com/jedisct1/dnscrypt-proxy) is a flexible DNS proxy, with support for encrypted DNS protocols.
+[dnscrypt-proxy](https://github.com/DNSCrypt/dnscrypt-proxy) is a flexible DNS proxy, with support for encrypted DNS protocols.
 
 ## Tags
 
-`latest`,
-`2.0.27`,
-`2.0.25`,
-`2.0.24`,
-`2.0.23`,
-`2.0.22`,
-`2.0.21`,
-`2.0.20`,
-`2.0.19`
+- `latest`, `2.0.27`
+- `amd64-latest`, `amd64-2.0.27`
+- `arm32v6-latest`, `arm32v6-2.0.27`
+- `arm32v7-latest`, `arm32v7-2.0.27`
+- `arm64v8-latest`, `arm64v8-2.0.27`
+- `i386-latest`, `i386-2.0.27`
+- `ppc64le-latest`, `ppc64le-2.0.27`
+- `s390x-latest`, `s390x-2.0.27`
 
 ## Deployment
 
 ```bash
-docker run -p 53:53/tcp -p 53:53/udp klutchell/dnscrypt-proxy
+# run a DNS over HTTPS proxy server on port 53
+docker run -p 53:5053/udp klutchell/dnscrypt-proxy
 ```
 
 ## Parameters
 
-* `-p 53:53/tcp` - expose tcp port 53 on the container to tcp port 53 on the host
-* `-p 53:53/udp` - expose udp port 53 on the container to udp port 53 on the host
-* `-v /path/to/config:/config` - (optional) mount a custom configuration directory
+- `-p 53:5053/udp` - publish udp port 5053 on the container to udp port 53 on the host
+- `-v /path/to/config:/config` - (optional) mount a custom configuration directory
 
 ## Building
 
 ```bash
-# ARCH can be amd64, arm32v6, arm32v7, or arm64v8
-make ARCH=amd64
-```
+# print makefile usage
+make help
 
-## Testing
+# ARCH can be amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le, s390x
+# and is emulated on top of any host architechture with qemu
+make build ARCH=arm32v6
 
-```bash
-# ARCH can be amd64, arm32v6, arm32v7, or arm64v8
-make test ARCH=amd64
+# appending -all to the make target will run the task
+# for all supported architectures and may take a long time
+make build-all BUILD_OPTIONS=--no-cache
 ```
 
 ## Usage
 
-Official project wiki: <https://github.com/jedisct1/dnscrypt-proxy/wiki>
+Official project wiki: <https://github.com/DNSCrypt/dnscrypt-proxy/wiki>
 
 ## Author
 
@@ -57,9 +57,9 @@ Please open an issue or submit a pull request with any features, fixes, or chang
 
 ## Acknowledgments
 
-* <https://github.com/jedisct1/dnscrypt-proxy>
+Original software is by the DNSCrypt project: <https://dnscrypt.info/>
 
 ## License
 
-* klutchell/dnscrypt-proxy: [MIT License](./LICENSE)
-* jedisct1/dnscrypt-proxy: [ISC License](https://github.com/jedisct1/dnscrypt-proxy/blob/master/LICENSE)
+- klutchell/dnscrypt-proxy: [MIT License](./LICENSE)
+- DNSCrypt/dnscrypt-proxy: [ISC License](https://github.com/DNSCrypt/dnscrypt-proxy/blob/master/LICENSE)

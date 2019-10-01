@@ -1,57 +1,30 @@
 ARG ARCH=amd64
 
-FROM alpine:3.9.2 as qemu
-
-ARG QEMU_VERSION=4.0.0
-ARG QEMU_BINARY=qemu-x86_64-static
-
-# install curl
-RUN apk add --no-cache curl=7.64.0-r2
-
-# download qemu binary for provided arch and set execute bit
-RUN curl -fsSL https://github.com/multiarch/qemu-user-static/releases/download/v${QEMU_VERSION}/${QEMU_BINARY} \
-	-o /usr/bin/${QEMU_BINARY} && chmod +x /usr/bin/${QEMU_BINARY}
-
 # ----------------------------------------------------------------------------
 
-FROM golang:1.12.0 as gobuild
+FROM ${ARCH}/golang:1.13.1-alpine3.10 as gobuild
 
-ARG GOOS=linux
-ARG GOARCH=amd64
-ARG GOARM
 ARG CGO_ENABLED=0
-ARG BUILD_VERSION=2.0.27
 
-WORKDIR $GOPATH/src
+ENV PACKAGE_VERSION="2.0.27"
+ENV PACKAGE_URL="https://github.com/jedisct1/dnscrypt-proxy"
+
+WORKDIR ${GOPATH}/src
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
-# download specific release from github
-RUN curl -fsSL "https://github.com/jedisct1/dnscrypt-proxy/archive/${BUILD_VERSION}.tar.gz" | tar xz --strip 1
+RUN apk add --no-cache curl=7.66.0-r0 \
+	&& curl -fsSL "${PACKAGE_URL}/archive/${PACKAGE_VERSION}.tar.gz" | tar xz --strip 1
 
-# switch to project source
-WORKDIR $GOPATH/src/dnscrypt-proxy
+WORKDIR ${GOPATH}/src/dnscrypt-proxy
 
-# cross-compile with golang
-RUN go build -v -ldflags="-s -w" -o "$GOPATH/app/dnscrypt-proxy" && cp -a example-* "$GOPATH/app/"
-
-# create directory for config files
-RUN mkdir /config
-
-# copy example config but change a few default values:
-# - listen on all ipv4 interfaces
-# - require dnssec from upstream servers
-# - require nolog from upstream servers
-RUN sed -r \
-	-e "s/^(# )?listen_addresses = .+$/listen_addresses = ['0.0.0.0:53']/" \
-	-e "s/^(# )?require_dnssec = .+$/require_dnssec = true/" \
-	-e "s/^(# )?require_nolog = .+$/require_nolog = true/" \
-	/go/app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
+RUN go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
+	&& cp -a example-* "${GOPATH}/app/"
 
 # ----------------------------------------------------------------------------
 
-FROM ${ARCH}/alpine:3.9
+FROM ${ARCH}/alpine:3.10.2
 
 ARG BUILD_DATE
 ARG BUILD_VERSION
@@ -68,25 +41,19 @@ LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
-# copy qemu binaries used for cross-compiling
-COPY --from=qemu /usr/bin/qemu-* /usr/bin/
-
-# copy binary and example config files from gobuild step
 COPY --from=gobuild /go/app /app
-COPY --from=gobuild /config /config
+COPY dnscrypt-proxy.sh /
 
-# copy healthcheck script to root
-COPY healthcheck.sh /
-RUN chmod +x healthcheck.sh
+RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 \
+	&& chmod +x /dnscrypt-proxy.sh
 
-# install golang, dnscrypt, and healthcheck dependencies
-RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2
-
-# add app to path
 ENV PATH "/app:${PATH}"
 
-# run startup script
-CMD [ "dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml" ]
+EXPOSE 5053/udp
 
-# set default healthcheck interval
-# HEALTHCHECK --interval=30s --retries=3 --start-period=5s --timeout=30s CMD [ "/healthcheck.sh" ]
+VOLUME /config
+
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s \
+	CMD drill -p 5053 cloudflare.com @127.0.0.1 || exit 1
+
+CMD ["/dnscrypt-proxy.sh"]

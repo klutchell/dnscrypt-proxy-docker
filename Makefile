@@ -1,103 +1,109 @@
-
-# override these values at runtime as desired
-# eg. make build ARCH=arm32v6 BUILD_OPTIONS=--no-cache
-ARCH := amd64
 DOCKER_REPO := klutchell/dnscrypt-proxy
+ARCH := amd64
+TAG := 2.0.27
 BUILD_OPTIONS +=
 
 BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%SZ'))
-# BUILD_VERSION := $(strip $(shell git describe --tags --always --dirty))
-BUILD_VERSION := 2.0.27
-VCS_REF := $(strip $(shell git rev-parse --short HEAD))
-# VCS_TAG := $(strip $(shell git describe --abbrev=0 --tags))
-VCS_TAG := 2.0.27
+BUILD_VERSION := ${ARCH}-${TAG}-$(strip $(shell git describe --tags --always --dirty))
+VCS_REF := $(strip $(shell git rev-parse HEAD))
 
-IMAGE := ${DOCKER_REPO}:${VCS_TAG}
+BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%SZ'))
+BUILD_VERSION := ${ARCH}-${TAG}-$(strip $(shell git describe --tags --always --dirty))
+VCS_REF := $(strip $(shell git rev-parse HEAD))
 
-# ARCH to GOARCH mapping (don't change these)
-# supported ARCH values: https://github.com/docker-library/official-images#architectures-other-than-amd64
-# supported GOARCH values: https://golang.org/doc/install/source#environment
-ifeq "${ARCH}" "amd64"
-GOARCH := amd64
-GOARM :=
-QEMU_BINARY := qemu-x86_64-static
-endif
-
-ifeq "${ARCH}" "arm32v6"
-GOARCH := arm
-GOARM := 6
-QEMU_BINARY := qemu-arm-static
-endif
-
-ifeq "${ARCH}" "arm32v7"
-GOARCH := arm
-GOARM := 7
-QEMU_BINARY := qemu-arm-static
-endif
-
-ifeq "${ARCH}" "arm64v8"
-GOARCH := arm64
-GOARM :=
-QEMU_BINARY := qemu-aarch64-static
-endif
+TEST_CMD := -c '(nohup sh -c "/dnscrypt-proxy.sh" &) && sleep 5 && drill -p 5053 cloudflare.com @127.0.0.1 || exit 1'
 
 .EXPORT_ALL_VARIABLES:
 
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := build
 
-.PHONY: all release build test clean push manifest help
+.PHONY: build push clean all build-all push-all clean-all manifest help
 
-all: clean build test ## Clean, build, and test ARCH image
-
-release: clean build test push ## Clean, build, test, and push ARCH image
-
-build: qemu-user-static ## Build and tag local ARCH image
+build: qemu-user-static ## Build an image with the provided ARCH
 	docker build ${BUILD_OPTIONS} \
-		--build-arg ARCH=${ARCH} \
-		--build-arg GOARCH=${GOARCH} \
-		--build-arg GOARM=${GOARM} \
-		--build-arg QEMU_BINARY=${QEMU_BINARY} \
+		--build-arg ARCH \
 		--build-arg BUILD_VERSION \
 		--build-arg BUILD_DATE \
 		--build-arg VCS_REF \
-		--tag ${DOCKER_REPO}:${ARCH}-${VCS_TAG} .
-	docker tag ${DOCKER_REPO}:${ARCH}-${VCS_TAG} ${DOCKER_REPO}:${ARCH}-latest
+		--tag ${DOCKER_REPO}:${ARCH}-${TAG} .
+	docker tag ${DOCKER_REPO}:${ARCH}-${TAG} ${DOCKER_REPO}:${ARCH}-latest
+	docker run --rm --entrypoint /bin/sh ${DOCKER_REPO}:${ARCH}-${TAG} ${TEST_CMD}
 
-test: qemu-user-static ## Test existing local ARCH image
-	docker run --rm ${DOCKER_REPO}:${ARCH}-${VCS_TAG} /healthcheck.sh
-
-clean: ## Remove existing local ARCH image
-	-docker image rm ${DOCKER_REPO}:${ARCH}-${VCS_TAG}
-	-docker image rm ${DOCKER_REPO}:${ARCH}-latest
-
-push: ## Push existing local ARCH image to docker repo
-	docker push ${DOCKER_REPO}:${ARCH}-${VCS_TAG}
+push: ## Push an image with the provided ARCH (requires docker login)
+	docker push ${DOCKER_REPO}:${ARCH}-${TAG}
 	docker push ${DOCKER_REPO}:${ARCH}-latest
 
-manifest: ## Push multi-arch manifest to docker repo
-	-docker manifest push --purge ${DOCKER_REPO}:${VCS_TAG}
-	docker manifest create ${DOCKER_REPO}:${VCS_TAG} \
-		${DOCKER_REPO}:amd64-${VCS_TAG} \
-		${DOCKER_REPO}:arm32v6-${VCS_TAG} \
-		${DOCKER_REPO}:arm32v7-${VCS_TAG} \
-		${DOCKER_REPO}:arm64v8-${VCS_TAG}
-	docker manifest annotate ${DOCKER_REPO}:${VCS_TAG} ${DOCKER_REPO}:arm32v6-${VCS_TAG} --os linux --arch arm --variant v6
-	docker manifest annotate ${DOCKER_REPO}:${VCS_TAG} ${DOCKER_REPO}:arm32v7-${VCS_TAG} --os linux --arch arm --variant v7
-	docker manifest annotate ${DOCKER_REPO}:${VCS_TAG} ${DOCKER_REPO}:arm64v8-${VCS_TAG} --os linux --arch arm64 --variant v8
-	docker manifest push --purge ${DOCKER_REPO}:${VCS_TAG}
+clean: ## Remove cached image with the provided ARCH
+	-docker image rm ${DOCKER_REPO}:${ARCH}-${TAG}
+	-docker image rm ${DOCKER_REPO}:${ARCH}-latest
+
+all: build-all
+
+build-all: ## Build images for all supported architectures
+	make build ARCH=amd64
+	make build ARCH=arm32v6
+	make build ARCH=arm32v7
+	make build ARCH=arm64v8
+	make build ARCH=i386
+	make build ARCH=ppc64le
+	make build ARCH=s390x
+
+push-all: ## Push images for all supported architectures (requires docker login)
+	make push ARCH=amd64
+	make push ARCH=arm32v6
+	make push ARCH=arm32v7
+	make push ARCH=arm64v8
+	make push ARCH=i386
+	make push ARCH=ppc64le
+	make push ARCH=s390x
+
+clean-all: ## Clean images for all supported architectures
+	make clean ARCH=amd64
+	make clean ARCH=arm32v6
+	make clean ARCH=arm32v7
+	make clean ARCH=arm64v8
+	make clean ARCH=i386
+	make clean ARCH=ppc64le
+	make clean ARCH=s390x
+
+manifest: ## Create and push a multiarch manifest to the docker repo (requires docker login)
+	-docker manifest push --purge ${DOCKER_REPO}:${TAG}
+	docker manifest create ${DOCKER_REPO}:${TAG} \
+		${DOCKER_REPO}:amd64-${TAG} \
+		${DOCKER_REPO}:arm32v6-${TAG} \
+		${DOCKER_REPO}:arm32v7-${TAG} \
+		${DOCKER_REPO}:arm64v8-${TAG} \
+		${DOCKER_REPO}:i386-${TAG} \
+		${DOCKER_REPO}:ppc64le-${TAG} \
+		${DOCKER_REPO}:s390x-${TAG}
+	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:amd64-${TAG} --os linux --arch amd64
+	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm32v6-${TAG} --os linux --arch arm --variant v6
+	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm32v7-${TAG} --os linux --arch arm --variant v7
+	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm64v8-${TAG} --os linux --arch arm64 --variant v8
+	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:i386-${TAG} --os linux --arch 386
+	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:ppc64le-${TAG} --os linux --arch ppc64le
+	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:s390x-${TAG} --os linux --arch s390x
+	docker manifest push --purge ${DOCKER_REPO}:${TAG}
 	-docker manifest push --purge ${DOCKER_REPO}:latest
 	docker manifest create ${DOCKER_REPO}:latest \
 		${DOCKER_REPO}:amd64-latest \
 		${DOCKER_REPO}:arm32v6-latest \
 		${DOCKER_REPO}:arm32v7-latest \
-		${DOCKER_REPO}:arm64v8-latest
+		${DOCKER_REPO}:arm64v8-latest \
+		${DOCKER_REPO}:i386-latest \
+		${DOCKER_REPO}:ppc64le-latest \
+		${DOCKER_REPO}:s390x-latest
+	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:amd64-latest --os linux --arch amd64
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v6-latest --os linux --arch arm --variant v6
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v7-latest --os linux --arch arm --variant v7
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm64v8-latest --os linux --arch arm64 --variant v8
+	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:i386-latest --os linux --arch 386
+	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:ppc64le-latest --os linux --arch ppc64le
+	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:s390x-latest --os linux --arch s390x
 	docker manifest push --purge ${DOCKER_REPO}:latest
 
 qemu-user-static:
-	docker run --rm --privileged multiarch/qemu-user-static:register --reset
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
 help: ## Display available commands
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

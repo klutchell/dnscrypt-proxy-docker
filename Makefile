@@ -71,7 +71,7 @@ manifest: ## Create and push a multiarch manifest to the docker repo (requires d
 		${DOCKER_REPO}:arm32v7-${TAG} \
 		${DOCKER_REPO}:arm64v8-${TAG} \
 		${DOCKER_REPO}:i386-${TAG} \
-		${DOCKER_REPO}:ppc64le-${TAG} \
+		${DOCKER_REPO}:ppc64le-${TAG}
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:amd64-${TAG} --os linux --arch amd64
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm32v6-${TAG} --os linux --arch arm --variant v6
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm32v7-${TAG} --os linux --arch arm --variant v7
@@ -86,7 +86,7 @@ manifest: ## Create and push a multiarch manifest to the docker repo (requires d
 		${DOCKER_REPO}:arm32v7-latest \
 		${DOCKER_REPO}:arm64v8-latest \
 		${DOCKER_REPO}:i386-latest \
-		${DOCKER_REPO}:ppc64le-latest \
+		${DOCKER_REPO}:ppc64le-latest
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:amd64-latest --os linux --arch amd64
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v6-latest --os linux --arch arm --variant v6
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v7-latest --os linux --arch arm --variant v7

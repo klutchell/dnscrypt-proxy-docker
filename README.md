@@ -14,7 +14,6 @@
 - `arm64v8-latest`, `arm64v8-2.0.27`
 - `i386-latest`, `i386-2.0.27`
 - `ppc64le-latest`, `ppc64le-2.0.27`
-- `s390x-latest`, `s390x-2.0.27`
 
 ## Deployment
 

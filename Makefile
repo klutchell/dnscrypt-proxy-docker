@@ -46,7 +46,6 @@ build-all: ## Build images for all supported architectures
 	make build ARCH=arm64v8
 	make build ARCH=i386
 	make build ARCH=ppc64le
-	make build ARCH=s390x
 
 push-all: ## Push images for all supported architectures (requires docker login)
 	make push ARCH=amd64
@@ -55,7 +54,6 @@ push-all: ## Push images for all supported architectures (requires docker login)
 	make push ARCH=arm64v8
 	make push ARCH=i386
 	make push ARCH=ppc64le
-	make push ARCH=s390x
 
 clean-all: ## Clean images for all supported architectures
 	make clean ARCH=amd64
@@ -64,7 +62,6 @@ clean-all: ## Clean images for all supported architectures
 	make clean ARCH=arm64v8
 	make clean ARCH=i386
 	make clean ARCH=ppc64le
-	make clean ARCH=s390x
 
 manifest: ## Create and push a multiarch manifest to the docker repo (requires docker login)
 	-docker manifest push --purge ${DOCKER_REPO}:${TAG}
@@ -75,14 +72,12 @@ manifest: ## Create and push a multiarch manifest to the docker repo (requires d
 		${DOCKER_REPO}:arm64v8-${TAG} \
 		${DOCKER_REPO}:i386-${TAG} \
 		${DOCKER_REPO}:ppc64le-${TAG} \
-		${DOCKER_REPO}:s390x-${TAG}
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:amd64-${TAG} --os linux --arch amd64
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm32v6-${TAG} --os linux --arch arm --variant v6
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm32v7-${TAG} --os linux --arch arm --variant v7
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:arm64v8-${TAG} --os linux --arch arm64 --variant v8
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:i386-${TAG} --os linux --arch 386
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:ppc64le-${TAG} --os linux --arch ppc64le
-	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:s390x-${TAG} --os linux --arch s390x
 	docker manifest push --purge ${DOCKER_REPO}:${TAG}
 	-docker manifest push --purge ${DOCKER_REPO}:latest
 	docker manifest create ${DOCKER_REPO}:latest \
@@ -92,14 +87,12 @@ manifest: ## Create and push a multiarch manifest to the docker repo (requires d
 		${DOCKER_REPO}:arm64v8-latest \
 		${DOCKER_REPO}:i386-latest \
 		${DOCKER_REPO}:ppc64le-latest \
-		${DOCKER_REPO}:s390x-latest
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:amd64-latest --os linux --arch amd64
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v6-latest --os linux --arch arm --variant v6
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v7-latest --os linux --arch arm --variant v7
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm64v8-latest --os linux --arch arm64 --variant v8
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:i386-latest --os linux --arch 386
 	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:ppc64le-latest --os linux --arch ppc64le
-	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:s390x-latest --os linux --arch s390x
 	docker manifest push --purge ${DOCKER_REPO}:latest
 
 qemu-user-static:

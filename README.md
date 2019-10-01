@@ -54,7 +54,6 @@ To use specific [public resolvers](https://download.dnscrypt.info/dnscrypt-resol
 ```
 
 ```bash
-# example: Quad9 (anycast) dnssec/no-log/filter 9.9.9.9
 server_names = ['quad9-dnscrypt-ip4-filter-pri']
 ```
 

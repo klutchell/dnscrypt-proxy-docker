@@ -47,6 +47,17 @@ make build-all BUILD_OPTIONS=--no-cache
 
 Official project wiki: <https://github.com/DNSCrypt/dnscrypt-proxy/wiki>
 
+To use specific [public resolvers](https://download.dnscrypt.info/dnscrypt-resolvers/v2/public-resolvers.md), uncomment and change the following line in `dnscrypt-proxy.toml`.
+
+```bash
+# server_names = ['scaleway-fr', 'google', 'yandex', 'cloudflare']
+```
+
+```bash
+# example: Quad9 (anycast) dnssec/no-log/filter 9.9.9.9
+server_names = ['quad9-dnscrypt-ip4-filter-pri']
+```
+
 ## Author
 
 Kyle Harding: <https://klutchell.dev>

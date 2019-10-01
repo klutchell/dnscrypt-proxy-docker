@@ -27,6 +27,7 @@ docker run -p 53:5053/udp klutchell/dnscrypt-proxy
 
 - `-p 53:5053/udp` - publish udp port 5053 on the container to udp port 53 on the host
 - `-v /path/to/config:/config` - (optional) mount a custom configuration directory
+- `-e "DNSCRYPT_SERVER_NAMES=['scaleway-fr', 'google', 'yandex', 'cloudflare']"` - _(optional)_ a toml array of specific [public resolvers](https://download.dnscrypt.info/dnscrypt-resolvers/v2/public-resolvers.md) to use upstream
 
 ## Building
 
@@ -46,16 +47,6 @@ make build-all BUILD_OPTIONS=--no-cache
 ## Usage
 
 Official project wiki: <https://github.com/DNSCrypt/dnscrypt-proxy/wiki>
-
-To use specific [public resolvers](https://download.dnscrypt.info/dnscrypt-resolvers/v2/public-resolvers.md), uncomment and change the following line in `dnscrypt-proxy.toml`.
-
-```bash
-# server_names = ['scaleway-fr', 'google', 'yandex', 'cloudflare']
-```
-
-```bash
-server_names = ['quad9-dnscrypt-ip4-filter-pri']
-```
 
 ## Author
 

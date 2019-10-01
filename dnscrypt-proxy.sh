@@ -6,4 +6,9 @@ then
 	    /app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
 fi
 
+if [ -n "${DNSCRYPT_SERVER_NAMES}" ]
+then
+    sed -r "s/^(# )?server_names = .+$/server_names = ${DNSCRYPT_SERVER_NAMES}/" -i /config/dnscrypt-proxy.toml
+fi
+
 exec dnscrypt-proxy -config /config/dnscrypt-proxy.toml

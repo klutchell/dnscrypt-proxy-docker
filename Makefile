@@ -7,10 +7,6 @@ BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%
 BUILD_VERSION := ${ARCH}-${TAG}-$(strip $(shell git describe --tags --always --dirty))
 VCS_REF := $(strip $(shell git rev-parse HEAD))
 
-BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%SZ'))
-BUILD_VERSION := ${ARCH}-${TAG}-$(strip $(shell git describe --tags --always --dirty))
-VCS_REF := $(strip $(shell git rev-parse HEAD))
-
 TEST_CMD := -c '(nohup sh -c "/dnscrypt-proxy.sh" &) && sleep 10 && drill -p 5053 cloudflare.com @127.0.0.1 || exit 1'
 
 .EXPORT_ALL_VARIABLES:

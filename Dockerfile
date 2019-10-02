@@ -52,4 +52,4 @@ VOLUME /config
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
 	CMD drill -p 5053 cloudflare.com @127.0.0.1 || exit 1
 
-CMD ["cmd.sh"]
+CMD ["/cmd.sh"]

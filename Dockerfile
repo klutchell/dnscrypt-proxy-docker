@@ -38,10 +38,10 @@ LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
 COPY --from=gobuild /go/app /app
-COPY dnscrypt-proxy.sh /
+COPY cmd.sh /
 
 RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 \
-	&& chmod +x /dnscrypt-proxy.sh
+	&& chmod +x /cmd.sh
 
 ENV PATH "/app:${PATH}"
 
@@ -52,4 +52,4 @@ VOLUME /config
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
 	CMD drill -p 5053 cloudflare.com @127.0.0.1 || exit 1
 
-CMD ["/dnscrypt-proxy.sh"]
+CMD ["cmd.sh"]

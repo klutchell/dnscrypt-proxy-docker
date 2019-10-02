@@ -38,10 +38,10 @@ LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
 COPY --from=gobuild /go/app /app
-COPY cmd.sh /
+COPY cmd.sh test.sh /
 
 RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 \
-	&& chmod +x /cmd.sh
+	&& chmod +x /cmd.sh /test.sh
 
 ENV PATH "/app:${PATH}"
 

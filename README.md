@@ -48,6 +48,13 @@ make build-all BUILD_OPTIONS=--no-cache
 
 Official project wiki: <https://github.com/DNSCrypt/dnscrypt-proxy/wiki>
 
+You can print the full command-line usage options by running the container.
+
+```bash
+# print general usage
+docker run --rm klutchell/dnscrypt-proxy --help
+```
+
 ## Author
 
 Kyle Harding: <https://klutchell.dev>

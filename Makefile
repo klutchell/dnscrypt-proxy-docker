@@ -21,7 +21,7 @@ build: qemu-user-static ## Build an image with the provided ARCH
 		--build-arg VCS_REF \
 		--tag ${DOCKER_REPO}:${ARCH}-${TAG} .
 	docker tag ${DOCKER_REPO}:${ARCH}-${TAG} ${DOCKER_REPO}:${ARCH}-latest
-	docker run --rm --entrypoint "" ${DOCKER_REPO}:${ARCH}-${TAG} /test.sh
+	docker run --rm ${DOCKER_REPO}:${ARCH}-${TAG} test
 
 push: ## Push an image with the provided ARCH (requires docker login)
 	docker push ${DOCKER_REPO}:${ARCH}-${TAG}

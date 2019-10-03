@@ -38,10 +38,13 @@ LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
 COPY --from=gobuild /go/app /app
-COPY cmd.sh test.sh /
+COPY entrypoint.sh /
 
 RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 \
-	&& chmod +x /cmd.sh /test.sh
+	&& chmod +x /entrypoint.sh
+
+ENV DNSCRYPT_LISTEN_ADDRESSES "['0.0.0.0:5053']"
+ENV DNSCRYPT_SERVER_NAMES ""
 
 ENV PATH "/app:${PATH}"
 
@@ -52,4 +55,6 @@ VOLUME /config
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
 	CMD drill -p 5053 cloudflare.com @127.0.0.1 || exit 1
 
-CMD ["/cmd.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["-config", "/config/dnscrypt-proxy.toml"]

@@ -57,4 +57,4 @@ HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-CMD ["-config", "/config/dnscrypt-proxy.toml"]
+CMD [""]

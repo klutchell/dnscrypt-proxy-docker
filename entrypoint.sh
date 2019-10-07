@@ -1,13 +1,10 @@
 #!/bin/sh
 
+mkdir /config 2>/dev/null
+
 if [ ! -f /config/dnscrypt-proxy.toml ]
 then
-	cp -av /app/example-dnscrypt-proxy.toml /config/dnscrypt-proxy.toml
-fi
-
-if [ -n "${DNSCRYPT_LISTEN_ADDRESSES}" ]
-then
-    sed -r "s/^(# )?(listen_addresses = ).+$/\2${DNSCRYPT_LISTEN_ADDRESSES}/" -i /config/dnscrypt-proxy.toml
+    sed -r "s/^(# )?(listen_addresses = ).+$/\2['0.0.0.0:5053']/" /app/example-dnscrypt-proxy.toml > /config/dnscrypt-proxy.toml
 fi
 
 if [ -n "${DNSCRYPT_SERVER_NAMES}" ]

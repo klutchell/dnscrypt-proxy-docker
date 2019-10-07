@@ -29,6 +29,8 @@ docker run -p 53:5053/udp klutchell/dnscrypt-proxy
 - `-v /path/to/config:/config` - (optional) mount a custom configuration directory
 - `-e "DNSCRYPT_SERVER_NAMES=['scaleway-fr','google','yandex','cloudflare']"` - _(optional)_ a toml array of specific [public resolvers](https://download.dnscrypt.info/dnscrypt-resolvers/v2/public-resolvers.md) to use upstream
 
+Note that when using a custom config that your value for `listen_addresses` should be `['0.0.0.0:5053']`. Otherwise you may need to disable healthcheck with `--no-healthcheck` or provide a custom `--healthcheck-cmd`.
+
 ## Building
 
 ```bash
@@ -47,8 +49,6 @@ make build-all BUILD_OPTIONS=--no-cache
 ## Usage
 
 Official project wiki: <https://github.com/DNSCrypt/dnscrypt-proxy/wiki>
-
-You can print the full command-line usage options by running the container.
 
 ```bash
 # print general usage

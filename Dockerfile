@@ -43,18 +43,12 @@ COPY entrypoint.sh /
 RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 \
 	&& chmod +x /entrypoint.sh
 
-ENV DNSCRYPT_LISTEN_ADDRESSES "['0.0.0.0:5053']"
-ENV DNSCRYPT_SERVER_NAMES ""
+ENV DNSCRYPT_LISTEN_PORT=5053
+ENV DNSCRYPT_SERVER_NAMES=""
 
 ENV PATH "/app:${PATH}"
 
-EXPOSE 5053/udp
-
-VOLUME /config
-
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
-	CMD drill -p 5053 cloudflare.com @127.0.0.1 || exit 1
+	CMD drill -p $DNSCRYPT_LISTEN_PORT cloudflare.com @127.0.0.1 || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["-config", "/config/dnscrypt-proxy.toml"]

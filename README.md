@@ -19,17 +19,25 @@
 ## Deployment
 
 ```bash
-# run a DNS over HTTPS proxy server on port 53
+# eg. run a DNS over HTTPS proxy server on port 53
 docker run -p 53:5053/udp klutchell/dnscrypt-proxy
+
+# eg. mount a custom configuration directory
+docker run -p 53:5053/udp -v "/path/to/config:/config" klutchell/dnscrypt-proxy
+
+# eg. bind directly to port 53 on the host without docker nat
+docker run --network host -e "DNSCRYPT_LISTEN_ADDRESSES=['127.0.0.1:53']" --no-healthcheck klutchell/dnscrypt-proxy
+
+# eg. use custom upstream resolvers
+docker run -p 53:5053/udp -e "DNSCRYPT_SERVER_NAMES=['scaleway-fr','google','yandex','cloudflare']" klutchell/dnscrypt-proxy
 ```
 
 ## Parameters
 
 - `-p 53:5053/udp` - publish udp port 5053 on the container to udp port 53 on the host
 - `-v /path/to/config:/config` - (optional) mount a custom configuration directory
-- `-e "DNSCRYPT_SERVER_NAMES=['scaleway-fr','google','yandex','cloudflare']"` - _(optional)_ a toml array of specific [public resolvers](https://download.dnscrypt.info/dnscrypt-resolvers/v2/public-resolvers.md) to use upstream
-
-Note that when using a custom config that your value for `listen_addresses` should be `['0.0.0.0:5053']`. Otherwise you may need to disable healthcheck with `--no-healthcheck` or provide a custom `--healthcheck-cmd`.
+- `-e "DNSCRYPT_SERVER_NAMES=['scaleway-fr','google','yandex','cloudflare']"` - _(optional)_ specify a custom range of upstream [public resolvers](https://download.dnscrypt.info/dnscrypt-resolvers/v2/public-resolvers.md)
+- `-e "DNSCRYPT_LISTEN_ADDRESSES=['0.0.0.0:5053']"` - _(optional)_ specify a custom range of addresses/ports for binding (note that this requires `--no-healthcheck` or a custom `--healthcheck-cmd`)
 
 ## Building
 

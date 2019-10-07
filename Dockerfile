@@ -45,7 +45,7 @@ RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 \
 
 ENV PATH "/app:${PATH}"
 
-EXPOSE 5053/udp
+ENV DNSCRYPT_LISTEN_ADDRESSES "['0.0.0.0:5053']"
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
 	CMD drill -p 5053 cloudflare.com @127.0.0.1 || exit 1

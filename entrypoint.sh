@@ -1,5 +1,11 @@
 #!/bin/sh
 
+if [ ! -f /config/default-dnscrypt-proxy.toml ]
+then
+    mkdir /config
+    cp /app/example-dnscrypt-proxy.toml /config/default-dnscrypt-proxy.toml
+fi
+
 if [ ! -f /config/dnscrypt-proxy.toml ]
 then
     CONFIG=/app/example-dnscrypt-proxy.toml
@@ -22,6 +28,6 @@ then
     exec dnscrypt-proxy -config $CONFIG &
     sleep 10 && drill -p $DNSCRYPT_LISTEN_PORT cloudflare.com @127.0.0.1 || exit 1
 else
-    echo "dnscrypt-proxy -config $CONFIG"
-    exec dnscrypt-proxy -config $CONFIG
+    echo "dnscrypt-proxy -config $CONFIG $@"
+    exec dnscrypt-proxy -config $CONFIG $@
 fi

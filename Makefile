@@ -24,11 +24,9 @@ build: qemu-user-static ## Build an image with the provided ARCH
 
 push: ## Push an image with the provided ARCH (requires docker login)
 	docker push ${DOCKER_REPO}:${ARCH}-${TAG}
-	docker push ${DOCKER_REPO}:${ARCH}-latest
 
 clean: ## Remove cached image with the provided ARCH
 	-docker image rm ${DOCKER_REPO}:${ARCH}-${TAG}
-	-docker image rm ${DOCKER_REPO}:${ARCH}-latest
 
 all: build-all
 

@@ -1,4 +1,4 @@
-# unofficial dnscrypt-proxy docker image
+# unofficial dnscrypt-proxy multiarch docker image
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/klutchell/dnscrypt-proxy.svg?style=flat-square)](https://hub.docker.com/r/klutchell/dnscrypt-proxy/)
 [![Docker Stars](https://img.shields.io/docker/stars/klutchell/dnscrypt-proxy.svg?style=flat-square)](https://hub.docker.com/r/klutchell/dnscrypt-proxy/)
@@ -7,8 +7,31 @@
 
 ## Tags
 
+These tags including rolling updates, so from time to time the associated image may change to include fixes.
+
 - `2.0.28`, `latest`
 - `2.0.27`
+- `2.0.25`
+- `2.0.24`
+- `2.0.23`
+- `2.0.22`
+- `2.0.21`
+- `2.0.20`
+- `2.0.19`
+
+## Architectures
+
+Simply pulling `klutchell/dnscrypt-proxy:<version>` should retrieve the correct image for your arch, but you can also pull specific arch images via tags.
+
+The architectures supported by this image are:
+
+- `amd64-<version>`
+- `arm32v6-<version>`
+- `arm32v7-<version>`
+- `arm64v8-<version>`
+- `i386-<version>`
+- `ppc64le-<version>`
+- ~~`s390x-<version>`~~
 
 ## Deployment
 

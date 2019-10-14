@@ -7,14 +7,8 @@
 
 ## Tags
 
-- `latest`, `2.0.27`
-- `amd64-latest`, `amd64-2.0.27`
-- `arm32v6-latest`, `arm32v6-2.0.27`
-- `arm32v7-latest`, `arm32v7-2.0.27`
-- `arm64v8-latest`, `arm64v8-2.0.27`
-- `i386-latest`, `i386-2.0.27`
-- `ppc64le-latest`, `ppc64le-2.0.27`
-- ~~`s390x-latest`, `s390x-2.0.27`~~
+- `2.0.28`, `latest`
+- `2.0.27`
 
 ## Deployment
 

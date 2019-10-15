@@ -2,9 +2,6 @@ name: test
 
 on:
   pull_request:
-    branches:
-      - master
-      - /^v\d+\.\d+\.\d+.*$/
 
 jobs:
   ARCH:

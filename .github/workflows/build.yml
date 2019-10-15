@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - /^v?\d+\.\d+\.\d+.*$/
+      - 'releases/**'
 
 jobs:
   ARCH:

@@ -1,8 +1,10 @@
 #!/bin/sh
 
+mkdir /config 2>/dev/null
+
 if [ ! -f /config/dnscrypt-proxy.toml ]
 then
-	cp -av /app/example-dnscrypt-proxy.toml /config/dnscrypt-proxy.toml
+    cp -av /app/example-dnscrypt-proxy.toml /config/dnscrypt-proxy.toml
 fi
 
 if [ -n "${DNSCRYPT_LISTEN_ADDRESSES}" ]

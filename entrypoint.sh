@@ -1,21 +1,13 @@
 #!/bin/sh
 
+set -x
+
 mkdir /config 2>/dev/null
 
-if [ ! -f /config/dnscrypt-proxy.toml ]
-then
-    cp -av /app/example-dnscrypt-proxy.toml /config/dnscrypt-proxy.toml
-fi
+[ -f /config/dnscrypt-proxy.toml ] || cp -a /app/example-dnscrypt-proxy.toml /config/dnscrypt-proxy.toml
 
-if [ -n "${DNSCRYPT_LISTEN_ADDRESSES}" ]
-then
-    sed -r "s/^(# )?(listen_addresses = ).+$/\2${DNSCRYPT_LISTEN_ADDRESSES}/" -i /config/dnscrypt-proxy.toml
-fi
+[ -z "${DNSCRYPT_LISTEN_ADDRESSES}" ] || sed -r "s/^(# )?(listen_addresses = ).+$/\2${DNSCRYPT_LISTEN_ADDRESSES}/" -i /config/dnscrypt-proxy.toml
 
-if [ -n "${DNSCRYPT_SERVER_NAMES}" ]
-then
-    sed -r "s/^(# )?(server_names = ).+$/\2${DNSCRYPT_SERVER_NAMES}/" -i /config/dnscrypt-proxy.toml
-fi
+[ -z "${DNSCRYPT_SERVER_NAMES}" ] || sed -r "s/^(# )?(server_names = ).+$/\2${DNSCRYPT_SERVER_NAMES}/" -i /config/dnscrypt-proxy.toml
 
-set -x
 exec dnscrypt-proxy -config /config/dnscrypt-proxy.toml $@

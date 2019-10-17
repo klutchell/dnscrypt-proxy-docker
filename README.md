@@ -21,17 +21,17 @@ These tags including rolling updates, so from time to time the associated image 
 
 ## Architectures
 
-Simply pulling `klutchell/dnscrypt-proxy:<version>` should retrieve the correct image for your arch, but you can also pull specific arch images via tags.
+Simply pulling `klutchell/dnscrypt-proxy:2.0.28` should retrieve the correct image for your arch, but you can also pull specific arch images via tags.
 
 The architectures supported by this image are:
 
-- `amd64-<version>`
-- `arm32v6-<version>`
-- `arm32v7-<version>`
-- `arm64v8-<version>`
-- `i386-<version>`
-- `ppc64le-<version>`
-- ~~`s390x-<version>`~~
+- `amd64-2.0.28`
+- `arm32v6-2.0.28`
+- `arm32v7-2.0.28`
+- `arm64v8-2.0.28`
+- `i386-2.0.28`
+- `ppc64le-2.0.28`
+- ~~`s390x-2.0.28`~~
 
 ## Deployment
 

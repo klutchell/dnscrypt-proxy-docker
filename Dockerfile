@@ -4,7 +4,7 @@ ARG ARCH=amd64
 
 FROM ${ARCH}/golang:1.12.10-alpine3.10 as gobuild
 
-ARG PACKAGE_VERSION="2.0.28"
+ARG PACKAGE_VERSION="2.0.29-beta.3"
 ARG PACKAGE_URL="https://github.com/DNSCrypt/dnscrypt-proxy"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006

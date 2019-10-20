@@ -9,6 +9,7 @@
 
 These tags including rolling updates, so from time to time the associated image may change to include fixes.
 
+- `2.0.29-beta.3`
 - `2.0.28`, `latest`
 - `2.0.27`
 - `2.0.25`

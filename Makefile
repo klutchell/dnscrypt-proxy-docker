@@ -1,6 +1,6 @@
 DOCKER_REPO := klutchell/dnscrypt-proxy
 ARCH := amd64
-TAG := 2.0.28
+TAG := 2.0.29-beta.3
 BUILD_OPTIONS +=
 
 BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%SZ'))
@@ -72,21 +72,6 @@ manifest: ## Create and push a multiarch manifest to the docker repo (requires d
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:i386-${TAG} --os linux --arch 386
 	docker manifest annotate ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:ppc64le-${TAG} --os linux --arch ppc64le
 	docker manifest push --purge ${DOCKER_REPO}:${TAG}
-	-docker manifest push --purge ${DOCKER_REPO}:latest
-	docker manifest create ${DOCKER_REPO}:latest \
-		${DOCKER_REPO}:amd64-${TAG} \
-		${DOCKER_REPO}:arm32v6-${TAG} \
-		${DOCKER_REPO}:arm32v7-${TAG} \
-		${DOCKER_REPO}:arm64v8-${TAG} \
-		${DOCKER_REPO}:i386-${TAG} \
-		${DOCKER_REPO}:ppc64le-${TAG}
-	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:amd64-${TAG} --os linux --arch amd64
-	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v6-${TAG} --os linux --arch arm --variant v6
-	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm32v7-${TAG} --os linux --arch arm --variant v7
-	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:arm64v8-${TAG} --os linux --arch arm64 --variant v8
-	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:i386-${TAG} --os linux --arch 386
-	docker manifest annotate ${DOCKER_REPO}:latest ${DOCKER_REPO}:ppc64le-${TAG} --os linux --arch ppc64le
-	docker manifest push --purge ${DOCKER_REPO}:latest
 
 qemu-user-static:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes

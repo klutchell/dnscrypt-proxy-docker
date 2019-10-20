@@ -40,7 +40,7 @@ LABEL org.label-schema.vcs-ref="${VCS_REF}"
 COPY --from=gobuild /go/app /app
 COPY entrypoint.sh /
 
-RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 \
+RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 tzdata=2019c-r0 \
 	&& chmod +x /entrypoint.sh
 
 ENV PATH "/app:${PATH}"

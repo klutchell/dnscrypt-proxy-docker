@@ -48,7 +48,8 @@ ENV PATH "/app:${PATH}"
 ENV DNSCRYPT_LISTEN_ADDRESSES "['0.0.0.0:5053']"
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
-	CMD drill -p 5053 cloudflare.com @127.0.0.1 || exit 1
+	CMD drill -D -p 5053 sigok.verteiltesysteme.net @127.0.0.1 | grep NOERROR \
+	&& drill -D -p 5053 sigfail.verteiltesysteme.net @127.0.0.1 | grep SERVFAIL
 
 ENTRYPOINT ["/entrypoint.sh"]
 

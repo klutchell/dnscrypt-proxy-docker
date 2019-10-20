@@ -21,7 +21,9 @@ build: qemu-user-static ## Build an image with the provided ARCH
 		--build-arg VCS_REF \
 		--tag ${DOCKER_REPO}:${ARCH}-${TAG} .
 	docker run --rm --entrypoint /bin/sh ${DOCKER_REPO}:${ARCH}-${TAG} \
-		-c '(/entrypoint.sh &) && sleep 10 && drill -p 5053 cloudflare.com @127.0.0.1 || exit 1'
+		-c '(/entrypoint.sh &) && sleep 10  \
+		&& drill -D -p 5053 sigok.verteiltesysteme.net @127.0.0.1 | grep NOERROR \
+		&& drill -D -p 5053 sigfail.verteiltesysteme.net @127.0.0.1 | grep SERVFAIL'
 
 push: ## Push an image with the provided ARCH (requires docker login)
 	docker push ${DOCKER_REPO}:${ARCH}-${TAG}

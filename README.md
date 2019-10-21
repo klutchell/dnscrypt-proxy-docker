@@ -21,54 +21,31 @@ These tags including rolling updates, so from time to time the associated image 
 
 ## Architectures
 
-Simply pulling `klutchell/dnscrypt-proxy:2.0.28` should retrieve the correct image for your arch, but you can also pull specific arch images via tags.
+Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for your arch.
 
 The architectures supported by this image are:
 
-- `amd64-2.0.28`
-- `arm32v6-2.0.28`
-- `arm32v7-2.0.28`
-- `arm64v8-2.0.28`
-- `i386-2.0.28`
-- `ppc64le-2.0.28`
-- ~~`s390x-2.0.28`~~
-
-## Deployment
-
-```bash
-# eg. run a DNS over HTTPS proxy server on port 53
-docker run -p 53:5053/udp klutchell/dnscrypt-proxy
-
-# eg. mount a custom configuration directory
-docker run -p 53:5053/udp -v "/path/to/config:/config" klutchell/dnscrypt-proxy
-
-# eg. bind directly to port 53 on the host without docker nat
-docker run --network host -e "DNSCRYPT_LISTEN_ADDRESSES=['127.0.0.1:53']" --no-healthcheck klutchell/dnscrypt-proxy
-
-# eg. use custom upstream resolvers
-docker run -p 53:5053/udp -e "DNSCRYPT_SERVER_NAMES=['scaleway-fr','google','yandex','cloudflare']" klutchell/dnscrypt-proxy
-```
-
-## Parameters
-
-- `-p 53:5053/udp` - publish udp port 5053 on the container to udp port 53 on the host
-- `-v /path/to/config:/config` - (optional) mount a custom configuration directory
-- `-e "DNSCRYPT_SERVER_NAMES=['scaleway-fr','google','yandex','cloudflare']"` - _(optional)_ specify a custom range of upstream [public resolvers](https://download.dnscrypt.info/dnscrypt-resolvers/v2/public-resolvers.md)
-- `-e "DNSCRYPT_LISTEN_ADDRESSES=['0.0.0.0:5053']"` - _(optional)_ specify a custom range of addresses/ports for binding (note that this requires `--no-healthcheck` or a custom `--healthcheck-cmd`)
+- `linux/amd64`
+- `linux/arm64`
+- `linux/ppc64le`
+- `linux/s390x`
+- `linux/386`
+- `linux/arm/v7`
 
 ## Building
 
 ```bash
-# print makefile usage
+# display available commands
 make help
 
-# ARCH can be amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le
-# and is emulated on top of any host architechture with qemu
-make build ARCH=arm32v6
+# build and test on the host OS architecture
+make build BUILD_OPTIONS=--no-cache
 
-# appending -all to the make target will run the task
-# for all supported architectures and may take a long time
-make build-all BUILD_OPTIONS=--no-cache
+# cross-build multiarch manifest(s) with configured platforms
+make buildx BUILD_OPTIONS=--push
+
+# inspect manifest contents
+make inspect
 ```
 
 ## Usage
@@ -76,9 +53,21 @@ make build-all BUILD_OPTIONS=--no-cache
 Official project wiki: <https://github.com/DNSCrypt/dnscrypt-proxy/wiki>
 
 ```bash
+# print version info
+docker run --rm klutchell/dnscrypt-proxy --version
+
 # print general usage
 docker run --rm klutchell/dnscrypt-proxy --help
+
+# run dnscrypt proxy server on host port 53
+docker run -p 53:5053/tcp -p 53:5053/udp klutchell/dnscrypt-proxy
+
+# run dnscrypt proxy server with external configuration file
+docker run -v /path/to/config:/config klutchell/dnscrypt-proxy -c /config/dnscrypt-proxy.toml
 ```
+
+Note that environment variables `DNSCRYPT_SERVER_NAMES` and `DNSCRYPT_LISTEN_ADDRESSES` have been depricated.
+Going forward it is recommended to provide an external configuration file as shown above.
 
 ## Author
 

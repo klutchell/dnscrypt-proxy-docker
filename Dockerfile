@@ -1,26 +1,21 @@
-ARG ARCH=amd64
-
-# ----------------------------------------------------------------------------
-
-FROM ${ARCH}/golang:1.12.10-alpine3.10 as gobuild
+FROM golang:1.12 as builder
 
 ARG PACKAGE_VERSION="2.0.28"
 ARG PACKAGE_URL="https://github.com/DNSCrypt/dnscrypt-proxy"
 
 # https://github.com/hadolint/hadolint/wiki/DL4006
-SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apk add --no-cache build-base=0.5-r1 curl=7.66.0-r0 \
-	&& curl -fsSL "${PACKAGE_URL}/archive/${PACKAGE_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
+RUN curl -fsSL "${PACKAGE_URL}/archive/${PACKAGE_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
 
 WORKDIR ${GOPATH}/src/dnscrypt-proxy
 
 RUN go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
-	&& cp -a example-* "${GOPATH}/app/"
+	&& cp -av example-* "${GOPATH}/app/"
 
 # ----------------------------------------------------------------------------
 
-FROM ${ARCH}/alpine:3.10.2
+FROM gcr.io/distroless/base
 
 ARG BUILD_DATE
 ARG BUILD_VERSION
@@ -32,24 +27,14 @@ LABEL org.label-schema.name="klutchell/dnscrypt-proxy"
 LABEL org.label-schema.description="dnscrypt-proxy is a flexible DNS proxy, with support for encrypted DNS protocols"
 LABEL org.label-schema.url="https://github.com/DNSCrypt/dnscrypt-proxy"
 LABEL org.label-schema.vcs-url="https://github.com/klutchell/dnscrypt-proxy"
-LABEL org.label-schema.docker.cmd="docker run -p 53:5053/udp klutchell/dnscrypt-proxy"
+LABEL org.label-schema.docker.cmd="docker run --rm klutchell/dnscrypt-proxy --help"
 LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
-COPY --from=gobuild /go/app /app
-COPY entrypoint.sh /
+COPY --from=builder /go/app /app
+COPY dnscrypt-proxy.toml /app
 
-RUN apk add --no-cache ca-certificates=20190108-r0 drill=1.7.0-r2 tzdata=2019c-r0 \
-	&& chmod +x /entrypoint.sh
-
-ENV PATH "/app:${PATH}"
-
-ENV DNSCRYPT_LISTEN_ADDRESSES "['0.0.0.0:5053']"
-
-HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
-	CMD drill -p 5053 sigok.verteiltesysteme.net @127.0.0.1 | grep NOERROR
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/app/dnscrypt-proxy"]
 
 CMD [""]

@@ -4,16 +4,18 @@ on:
   pull_request:
 
 jobs:
-  ARCH:
+  test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        ARCH: [amd64, arm32v6, arm32v7, arm64v8, i386, ppc64le]
-
     steps:
+      - name: install
+        run: curl -fsSL get.docker.com | sh
+        
       - name: checkout
         uses: actions/checkout@v1
 
       - name: build
-        run: make build ARCH=${{ matrix.ARCH }}
+        run: make build
+
+      - name: buildx
+        run: make buildx

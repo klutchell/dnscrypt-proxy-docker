@@ -36,5 +36,3 @@ COPY --from=builder /go/app /app
 COPY dnscrypt-proxy.toml /app
 
 ENTRYPOINT ["/app/dnscrypt-proxy"]
-
-CMD [""]

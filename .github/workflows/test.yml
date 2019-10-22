@@ -4,18 +4,18 @@ on:
   pull_request:
 
 jobs:
-  test:
+  job-01:
     runs-on: ubuntu-latest
 
     steps:
-      - name: install
+      - name: install docker
         run: curl -fsSL get.docker.com | sh
         
-      - name: checkout
+      - name: checkout source
         uses: actions/checkout@v1
 
-      - name: build
+      - name: build and test
         run: make build
 
-      - name: buildx
-        run: make buildx
+      - name: build all
+        run: make all

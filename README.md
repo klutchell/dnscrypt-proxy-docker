@@ -42,7 +42,7 @@ make help
 make build BUILD_OPTIONS=--no-cache
 
 # cross-build multiarch manifest(s) with configured platforms
-make buildx BUILD_OPTIONS=--push
+make all BUILD_OPTIONS=--push
 
 # inspect manifest contents
 make inspect

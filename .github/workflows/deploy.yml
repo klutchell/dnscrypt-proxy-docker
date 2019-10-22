@@ -7,24 +7,24 @@ on:
       - 'releases/**'
 
 jobs:
-  deploy:
+  job-01:
     runs-on: ubuntu-latest
 
     steps:
-      - name: install
+      - name: install docker
         run: curl -fsSL get.docker.com | sh
         
-      - name: checkout
+      - name: checkout source
         uses: actions/checkout@v1
 
-      - name: build
+      - name: build and test
         run: make build DOCKER_REPO=${{ secrets.DOCKER_REPO }}
 
-      - name: login
+      - name: docker login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: buildx
-        run: make buildx DOCKER_REPO=${{ secrets.DOCKER_REPO }} BUILD_OPTIONS=--push
+      - name: build and push all
+        run: make all DOCKER_REPO=${{ secrets.DOCKER_REPO }} BUILD_OPTIONS=--push
       
-      - name: inspect
+      - name: inspect manifest
         run: make inspect DOCKER_REPO=${{ secrets.DOCKER_REPO }}

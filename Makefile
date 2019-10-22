@@ -13,7 +13,7 @@ DOCKER_CLI_EXPERIMENTAL := enabled
 
 .DEFAULT_GOAL := build
 
-.PHONY: build buildx inspect help
+.PHONY: build all inspect help
 
 build:	## build and test on the host OS architecture
 	docker build ${BUILD_OPTIONS} \
@@ -23,7 +23,7 @@ build:	## build and test on the host OS architecture
 		--tag ${DOCKER_REPO} .
 	docker run --rm ${DOCKER_REPO} --check
 
-buildx: builder	## cross-build multiarch manifest(s) with configured platforms
+all: bootstrap ## cross-build multiarch manifest(s) with configured platforms
 	docker buildx build ${BUILD_OPTIONS} \
 		--platform ${PLATFORM} \
 		--build-arg BUILD_VERSION \
@@ -32,10 +32,10 @@ buildx: builder	## cross-build multiarch manifest(s) with configured platforms
 		--tag ${DOCKER_REPO}:${TAG} \
 		--tag ${DOCKER_REPO}:latest .
 
-inspect:	## inspect manifest contents
+inspect: ## inspect manifest contents
 	docker buildx imagetools inspect ${DOCKER_REPO}:${TAG}
 
-builder: binfmt
+bootstrap: binfmt
 	-docker buildx create --use --name ci
 	docker buildx inspect --bootstrap
 

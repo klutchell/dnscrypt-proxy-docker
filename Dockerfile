@@ -15,7 +15,7 @@ RUN go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
 
 # ----------------------------------------------------------------------------
 
-FROM gcr.io/distroless/base
+FROM gcr.io/distroless/base-debian10:nonroot
 
 ARG BUILD_DATE
 ARG BUILD_VERSION
@@ -32,7 +32,7 @@ LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
-COPY --from=builder /go/app /app
+COPY --from=builder --chown=nonroot /go/app /app
 COPY dnscrypt-proxy.toml /app
 
 ENTRYPOINT ["/app/dnscrypt-proxy"]

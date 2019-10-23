@@ -1,0 +1,9 @@
+version: '3'
+services:
+    dnscrypt-proxy:
+        image: ${DOCKER_REPO}
+    drill:
+        image: alpine
+        command: sh -c 'apk add -q --no-cache drill && drill -p 5053 dnscrypt.info @dnscrypt-proxy'
+        links:
+            - dnscrypt-proxy

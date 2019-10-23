@@ -17,14 +17,17 @@ jobs:
       - name: checkout source
         uses: actions/checkout@v1
 
-      - name: build and test
+      - name: build on the host OS architecture
         run: make build DOCKER_REPO=${{ secrets.DOCKER_REPO }}
+      
+      - name: test on the host OS architecture
+        run: make test DOCKER_REPO=${{ secrets.DOCKER_REPO }}
 
       - name: docker login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: build and push all
-        run: make all DOCKER_REPO=${{ secrets.DOCKER_REPO }} BUILD_OPTIONS=--push
+      - name: cross-build multiarch manifest
+        run: make buildx DOCKER_REPO=${{ secrets.DOCKER_REPO }} BUILD_OPTIONS=--push
       
-      - name: inspect manifest
+      - name: inspect manifest contents
         run: make inspect DOCKER_REPO=${{ secrets.DOCKER_REPO }}

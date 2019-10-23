@@ -14,8 +14,11 @@ jobs:
       - name: checkout source
         uses: actions/checkout@v1
 
-      - name: build and test
+      - name: build on the host OS architecture
         run: make build
+      
+      - name: test on the host OS architecture
+        run: make test
 
-      - name: build all
-        run: make all
+      - name: cross-build multiarch manifest
+        run: make buildx

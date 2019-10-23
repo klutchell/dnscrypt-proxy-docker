@@ -1,9 +1,8 @@
-FROM golang:1.12 as builder
+FROM golang:1.12 as build
 
 ARG PACKAGE_VERSION="2.0.28"
 ARG PACKAGE_URL="https://github.com/DNSCrypt/dnscrypt-proxy"
 
-# https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN curl -fsSL "${PACKAGE_URL}/archive/${PACKAGE_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
@@ -32,7 +31,11 @@ LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
-COPY --from=builder --chown=nonroot /go/app /app
+COPY --from=build --chown=nonroot /go/app /app
 COPY dnscrypt-proxy.toml /app
 
-ENTRYPOINT ["/app/dnscrypt-proxy"]
+ENV PATH /app/:${PATH}
+
+ENTRYPOINT ["dnscrypt-proxy"]
+
+RUN ["dnscrypt-proxy", "-version"]

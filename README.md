@@ -38,11 +38,17 @@ The architectures supported by this image are:
 # display available commands
 make help
 
-# build and test on the host OS architecture
-make build BUILD_OPTIONS=--no-cache
+# clean dangling images, containers, and build instances
+make clean
 
-# cross-build multiarch manifest(s) with configured platforms
-make all BUILD_OPTIONS=--push
+# build on the host OS architecture
+make build
+
+# test on the host OS architecture
+make test
+
+# cross-build multiarch manifest
+make buildx
 
 # inspect manifest contents
 make inspect

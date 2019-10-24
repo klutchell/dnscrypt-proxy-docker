@@ -36,6 +36,8 @@ LABEL org.label-schema.vcs-ref="${VCS_REF}"
 COPY --from=build /go/app /app
 COPY dnscrypt-proxy.toml /app
 
+RUN apk add --no-cache ca-certificates=20190108-r0
+
 ENV PATH /app/:${PATH}
 
 ENTRYPOINT ["dnscrypt-proxy"]

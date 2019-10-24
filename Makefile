@@ -9,7 +9,9 @@ VCS_REF := $(strip $(shell git rev-parse HEAD))
 
 DOCKER_CLI_EXPERIMENTAL := enabled
 BUILDX_INSTANCE := $(subst /,-,${DOCKER_REPO})
-COMPOSE_OPTIONS := -e COMPOSE_PROJECT_NAME=$(subst /,-,${DOCKER_REPO}) -e COMPOSE_FILE=test/docker-compose.yml
+COMPOSE_PROJECT_NAME := $(subst /,-,${DOCKER_REPO})
+COMPOSE_FILE := test/docker-compose.yml
+COMPOSE_OPTIONS := -e COMPOSE_PROJECT_NAME -e COMPOSE_FILE
 
 .EXPORT_ALL_VARIABLES:
 

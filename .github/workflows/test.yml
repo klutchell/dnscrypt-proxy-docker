@@ -21,4 +21,4 @@ jobs:
         run: make test
 
       - name: cross-build multiarch manifest
-        run: make buildx
+        run: make all

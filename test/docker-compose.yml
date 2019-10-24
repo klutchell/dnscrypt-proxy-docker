@@ -2,8 +2,8 @@ version: '3'
 services:
     dnscrypt-proxy:
         image: klutchell/dnscrypt-proxy
-    drill:
+    dig:
         image: alpine
-        command: sh -c 'apk add -q --no-cache drill && drill -p 5053 dnscrypt.info @dnscrypt-proxy'
+        command: sh -c 'apk add -q --no-cache bind-tools && dig @dnscrypt-proxy -p 5053 dnscrypt.info AAAA'
         links:
             - dnscrypt-proxy

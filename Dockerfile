@@ -1,17 +1,21 @@
 FROM golang:1.12 as build
 
+WORKDIR ${GOPATH}/src/dnscrypt-proxy
+
 ARG DNSCRYPT_PROXY_VERSION="2.0.28"
 ARG DNSCRYPT_PROXY_URL="https://github.com/DNSCrypt/dnscrypt-proxy"
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# RUN curl -L "${DNSCRYPT_PROXY_URL}/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
 
-RUN curl -L "${DNSCRYPT_PROXY_URL}/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
-
-WORKDIR ${GOPATH}/src/dnscrypt-proxy
-
+ENV DEBIAN_FRONTEND noninteractive
 ENV CGO_ENABLED 0
 
-RUN go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
+RUN apt-get update && apt-get install -qq --no-install-recommends dnsutils=1:9.11.5.P4+dfsg-5.1 \
+	&& apt-get clean \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& curl -L "${DNSCRYPT_PROXY_URL}/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
+	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1 -C "${GOPATH}/src" \
+    && go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
 	&& cp -av example-* "${GOPATH}/app/" \
 	&& adduser --system nonroot
 
@@ -39,12 +43,15 @@ LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
 COPY --from=build /go/app /app
-COPY --from=build /config /config
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build --chown=nonroot /config /config
 
 USER nonroot
 
 ENTRYPOINT ["/app/dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml"]
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+	CMD [ "dig", "+short", "@127.0.0.1", "-p", "5053", "dnscrypt.info", "AAAA" ]
 
 RUN ["/app/dnscrypt-proxy", "-version"]

@@ -9,8 +9,7 @@ VCS_REF := $(strip $(shell git rev-parse HEAD))
 
 DOCKER_CLI_EXPERIMENTAL := enabled
 BUILDX_INSTANCE := $(subst /,-,${DOCKER_REPO})
-COMPOSE_PROJECT_NAME := $(subst /,-,${DOCKER_REPO})
-COMPOSE_FILE := test/docker-compose.yml
+COMPOSE_OPTIONS := -e COMPOSE_PROJECT_NAME=$(subst /,-,${DOCKER_REPO}) -e COMPOSE_FILE=test/docker-compose.yml
 
 .EXPORT_ALL_VARIABLES:
 
@@ -19,7 +18,7 @@ COMPOSE_FILE := test/docker-compose.yml
 .PHONY: build all inspect test clean bootstrap binfmt help
 
 build: bootstrap ## build on the host OS architecture
-	docker buildx build --pull --tag ${DOCKER_REPO}:${TAG} --tag ${DOCKER_REPO}:latest --load ${BUILD_OPTIONS} .
+	docker buildx build --pull --tag ${DOCKER_REPO}:${TAG} --tag ${DOCKER_REPO}:latest --load --progress plain ${BUILD_OPTIONS} .
 
 all: bootstrap ## cross-build multiarch manifest
 	docker buildx build --pull --tag ${DOCKER_REPO}:${TAG} --tag ${DOCKER_REPO}:latest --platform ${PLATFORM} ${BUILD_OPTIONS} .
@@ -34,7 +33,7 @@ test: binfmt ## test on the host OS architecture
 clean: ## clean dangling images, containers, and build instances
 	-docker-compose down
 	-docker buildx rm ${BUILDX_INSTANCE}
-	-docker rmi $(docker images -q ${DOCKER_REPO})
+	-docker rmi ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:latest
 
 bootstrap: binfmt
 	-docker buildx create --use --name ${BUILDX_INSTANCE}

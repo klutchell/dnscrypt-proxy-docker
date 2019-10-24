@@ -69,7 +69,7 @@ docker run --rm klutchell/dnscrypt-proxy --help
 docker run -p 53:5053/tcp -p 53:5053/udp klutchell/dnscrypt-proxy
 
 # run dnscrypt proxy server with external configuration file
-docker run -v /path/to/config:/config klutchell/dnscrypt-proxy -c /config/dnscrypt-proxy.toml
+docker run -v /path/to/config:/config klutchell/dnscrypt-proxy
 ```
 
 Note that environment variables `DNSCRYPT_SERVER_NAMES` and `DNSCRYPT_LISTEN_ADDRESSES` have been depricated.

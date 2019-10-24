@@ -12,7 +12,8 @@ WORKDIR ${GOPATH}/src/dnscrypt-proxy
 ENV CGO_ENABLED 0
 
 RUN go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
-	&& cp -av example-* "${GOPATH}/app/"
+	&& cp -av example-* "${GOPATH}/app/" \
+	&& adduser --system nonroot
 
 WORKDIR /config
 
@@ -39,7 +40,10 @@ LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
 COPY --from=build /go/app /app
 COPY --from=build /config /config
+COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+USER nonroot
 
 ENTRYPOINT ["/app/dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml"]
 

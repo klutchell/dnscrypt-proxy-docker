@@ -69,9 +69,6 @@ docker run -v /path/to/config:/config klutchell/dnscrypt-proxy -c /config/dnscry
 Note that environment variables `DNSCRYPT_SERVER_NAMES` and `DNSCRYPT_LISTEN_ADDRESSES` have been depricated.
 Going forward it is recommended to provide an external configuration file as shown above.
 
-Note that this image is [distroless](https://github.com/GoogleContainerTools/distroless) and contains no shell or busybox binaries.
-Logging in to the container is not possible for security reasons.
-
 ## Author
 
 Kyle Harding: <https://klutchell.dev>

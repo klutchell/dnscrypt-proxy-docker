@@ -5,16 +5,18 @@ ARG PACKAGE_URL="https://github.com/DNSCrypt/dnscrypt-proxy"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN curl -fsSL "${PACKAGE_URL}/archive/${PACKAGE_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
+RUN curl -L "${PACKAGE_URL}/archive/${PACKAGE_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
 
 WORKDIR ${GOPATH}/src/dnscrypt-proxy
+
+ENV CGO_ENABLED 0
 
 RUN go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
 	&& cp -av example-* "${GOPATH}/app/"
 
 # ----------------------------------------------------------------------------
 
-FROM gcr.io/distroless/base-debian10:nonroot
+FROM alpine:3.10
 
 ARG BUILD_DATE
 ARG BUILD_VERSION
@@ -31,7 +33,7 @@ LABEL org.label-schema.build-date="${BUILD_DATE}"
 LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
-COPY --from=build --chown=nonroot /go/app /app
+COPY --from=build /go/app /app
 COPY dnscrypt-proxy.toml /app
 
 ENV PATH /app/:${PATH}

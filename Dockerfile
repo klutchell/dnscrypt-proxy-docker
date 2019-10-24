@@ -1,11 +1,11 @@
 FROM golang:1.12 as build
 
-ARG PACKAGE_VERSION="2.0.28"
-ARG PACKAGE_URL="https://github.com/DNSCrypt/dnscrypt-proxy"
+ARG DNSCRYPT_PROXY_VERSION="2.0.28"
+ARG DNSCRYPT_PROXY_URL="https://github.com/DNSCrypt/dnscrypt-proxy"
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN curl -L "${PACKAGE_URL}/archive/${PACKAGE_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
+RUN curl -L "${DNSCRYPT_PROXY_URL}/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz" | tar xz --strip 1 -C "${GOPATH}/src"
 
 WORKDIR ${GOPATH}/src/dnscrypt-proxy
 
@@ -14,9 +14,13 @@ ENV CGO_ENABLED 0
 RUN go build -v -ldflags="-s -w" -o "${GOPATH}/app/dnscrypt-proxy" \
 	&& cp -av example-* "${GOPATH}/app/"
 
+WORKDIR /config
+
+COPY dnscrypt-proxy.toml ./
+
 # ----------------------------------------------------------------------------
 
-FROM alpine:3.10
+FROM scratch
 
 ARG BUILD_DATE
 ARG BUILD_VERSION
@@ -34,12 +38,9 @@ LABEL org.label-schema.version="${BUILD_VERSION}"
 LABEL org.label-schema.vcs-ref="${VCS_REF}"
 
 COPY --from=build /go/app /app
-COPY dnscrypt-proxy.toml /app
+COPY --from=build /config /config
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-RUN apk add --no-cache ca-certificates=20190108-r0
+ENTRYPOINT ["/app/dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml"]
 
-ENV PATH /app/:${PATH}
-
-ENTRYPOINT ["dnscrypt-proxy"]
-
-RUN ["dnscrypt-proxy", "-version"]
+RUN ["/app/dnscrypt-proxy", "-version"]

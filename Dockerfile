@@ -7,10 +7,11 @@ ARG DNSCRYPT_PROXY_URL=https://github.com/DNSCrypt/dnscrypt-proxy/archive/
 
 ENV CGO_ENABLED 0
 
-RUN apk add --no-cache ca-certificates=20190108-r0 curl=7.66.0-r0 \
+RUN apk add --no-cache ca-certificates=20190108-r0 curl=7.66.0-r0 upx=3.95-r2 \
 	&& curl -L "${DNSCRYPT_PROXY_URL}${DNSCRYPT_PROXY_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
 	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1 -C /go/src/github.com/DNSCrypt \
 	&& go build -v -ldflags="-s -w" \
+	&& upx --brute dnscrypt-proxy \
 	&& adduser -S nonroot
 
 WORKDIR /config

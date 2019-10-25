@@ -42,17 +42,11 @@ make help
 # clean dangling images, containers, and build instances
 make clean
 
-# build on the host OS architecture
-make build
-
-# test on the host OS architecture
-make test
+# build and test on the host architecture
+make build test
 
 # cross-build multiarch manifest
 make all
-
-# inspect manifest contents
-make inspect
 ```
 
 ## Usage

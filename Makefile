@@ -38,7 +38,7 @@ test: binfmt ## test on the host OS architecture
 clean: ## clean dangling images, containers, and build instances
 	-docker-compose down
 	-docker buildx rm $(BUILDX_INSTANCE)
-	-docker rmi $(docker images -q $(DOCKER_REPO))
+	-docker rmi ${DOCKER_REPO}:${TAG} ${DOCKER_REPO}:latest
 
 bootstrap: binfmt
 	-docker buildx create --use --name $(BUILDX_INSTANCE)

@@ -20,11 +20,5 @@ jobs:
       - name: checkout source
         uses: actions/checkout@v1
 
-      - name: build on the host architecture
-        run: make build DOCKER_REPO=${{ secrets.DOCKER_REPO }}
-      
-      - name: test on the host architecture
-        run: make test DOCKER_REPO=${{ secrets.DOCKER_REPO }}
-
-      - name: cross-build multiarch manifest
+      - name: manifest build
         run: make all DOCKER_REPO=${{ secrets.DOCKER_REPO }} EXTRA_OPTS=--push

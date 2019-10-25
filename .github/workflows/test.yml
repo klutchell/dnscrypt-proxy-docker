@@ -7,6 +7,10 @@ jobs:
   job-01:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        PLATFORM: [linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386,linux/arm/v7,linux/arm/v6]
+
     steps:
       - name: install docker
         run: curl -fsSL get.docker.com | sh
@@ -14,11 +18,8 @@ jobs:
       - name: checkout source
         uses: actions/checkout@v1
 
-      - name: build on the host architecture
-        run: make build
+      - name: platform build
+        run: make build EXTRA_OPTS=--platform=${{ matrix.PLATFORM }}
 
-      - name: test on the host architecture
-        run: make test
-
-      - name: cross-build multiarch manifest
-        run: make all
+      - name: platform test
+        run: make test EXTRA_OPTS=--platform=${{ matrix.PLATFORM }}

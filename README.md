@@ -21,8 +21,6 @@ These tags including rolling updates, so occasionally the associated image may c
 
 ## Architectures
 
-Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for your arch.
-
 The architectures supported by this image are:
 
 - `linux/amd64`
@@ -31,6 +29,9 @@ The architectures supported by this image are:
 - `linux/s390x`
 - `linux/386`
 - `linux/arm/v7`
+- `linux/arm/v6`
+
+Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for your arch.
 
 ## Building
 

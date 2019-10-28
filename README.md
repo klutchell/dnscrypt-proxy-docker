@@ -9,7 +9,8 @@
 
 These tags including rolling updates, so occasionally the associated image may change to include fixes.
 
-- `2.0.28`, `latest`
+- `2.0.29`, `latest`
+- `2.0.28`
 - `2.0.27`
 - `2.0.25`
 - `2.0.24`

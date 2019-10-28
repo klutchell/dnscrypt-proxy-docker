@@ -11,7 +11,8 @@ RUN apk add --no-cache ca-certificates=20190108-r0 curl=7.66.0-r0 \
 	&& curl -L "${DNSCRYPT_PROXY_URL}${DNSCRYPT_PROXY_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
 	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1 -C /go/src/github.com/DNSCrypt \
 	&& go build -v -ldflags="-s -w" \
-	&& adduser -S nonroot
+	&& addgroup -S -g 1001 nonroot \
+	&& adduser -S -u 1001 nonroot -G nonroot
 
 WORKDIR /config
 
@@ -41,9 +42,9 @@ COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY --from=build /go/src/github.com/DNSCrypt/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
-COPY --from=build --chown=nonroot /config /config
+COPY --from=build --chown=1001 /config /config
 
-USER nonroot
+USER 1001
 
 ENTRYPOINT ["dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml"]
 

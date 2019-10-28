@@ -1,7 +1,7 @@
 version: '3'
 services:
     dnscrypt-proxy:
-        image: klutchell/dnscrypt-proxy
+        image: ${DOCKER_REPO}
     dig:
         image: alpine:3.10
         command: sh -c 'apk add -q --no-cache drill=1.7.0-r2 && drill -p 5053 dnscrypt.info @dnscrypt-proxy | tee /dev/stderr | grep -q NOERROR'

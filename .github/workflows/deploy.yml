@@ -7,18 +7,18 @@ on:
       - 'releases/**'
 
 jobs:
-  job-01:
+  DOCKER_REPO:
     runs-on: ubuntu-latest
 
     steps:
-      - name: install docker
+      - name: docker install
         run: curl -fsSL get.docker.com | sh
 
-      - name: checkout source
+      - name: source checkout
         uses: actions/checkout@v1
 
       - name: docker login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: manifest build
-        run: make all DOCKER_REPO=${{ secrets.DOCKER_REPO }} EXTRA_OPTS=--push
+        run: make DOCKER_REPO=${{ secrets.DOCKER_REPO }} EXTRA_OPTS="--push --platform=linux/amd64,linux/arm64,linux/ppc64le,linux/386,linux/arm/v7,linux/arm/v6"

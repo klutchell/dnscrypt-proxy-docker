@@ -44,6 +44,9 @@ make clean
 
 # build and test on the host architecture
 make build test
+
+# cross-build for other architectures
+make build test EXTRA_OPTS=--platform=linux/arm/v7
 ```
 
 ## Usage

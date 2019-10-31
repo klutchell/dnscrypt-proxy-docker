@@ -1,5 +1,5 @@
 DOCKER_REPO := klutchell/dnscrypt-proxy
-TAG := 2.0.30
+TAG := 2.0.31
 
 BUILD_DATE := $(strip $(shell docker run --rm busybox date -u +'%Y-%m-%dT%H:%M:%SZ'))
 BUILD_VERSION := $(TAG)

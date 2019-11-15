@@ -36,11 +36,11 @@ LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.title="klutchell/dnscrypt-proxy"
 LABEL org.opencontainers.image.description="dnscrypt-proxy is a flexible DNS proxy, with support for encrypted DNS protocols"
 
-COPY --from=build /etc/passwd /etc/passwd
+COPY --from=build /etc/passwd /etc/group /etc/
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY --from=build /go/src/github.com/DNSCrypt/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
-COPY --from=build --chown=nobody /config /config
+COPY --from=build --chown=nobody:nogroup /config /config
 
 USER nobody
 

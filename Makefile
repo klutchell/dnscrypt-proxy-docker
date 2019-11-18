@@ -15,9 +15,11 @@ COMPOSE_OPTIONS := -e COMPOSE_PROJECT_NAME -e COMPOSE_FILE -e DOCKER_REPO
 
 .EXPORT_ALL_VARIABLES:
 
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := all
 
-.PHONY: build test clean bootstrap binfmt help
+.PHONY: all build test clean bootstrap binfmt help
+
+all: build test
 
 build: bootstrap ## build on the host architecture
 	docker buildx build . \

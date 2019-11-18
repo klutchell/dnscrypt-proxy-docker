@@ -22,20 +22,6 @@ COPY dnscrypt-proxy.toml ./
 
 FROM scratch
 
-ARG BUILD_DATE
-ARG BUILD_VERSION
-ARG VCS_REF
-
-LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.authors="Kyle Harding <https://klutchell.dev>"
-LABEL org.opencontainers.image.url="https://klutchell.dev/dnscrypt-proxy"
-LABEL org.opencontainers.image.documentation="https://klutchell.dev/dnscrypt-proxy"
-LABEL org.opencontainers.image.source="https://klutchell.dev/dnscrypt-proxy"
-LABEL org.opencontainers.image.version="${BUILD_VERSION}"
-LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.title="klutchell/dnscrypt-proxy"
-LABEL org.opencontainers.image.description="dnscrypt-proxy is a flexible DNS proxy, with support for encrypted DNS protocols"
-
 COPY --from=build /etc/passwd /etc/group /etc/
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 

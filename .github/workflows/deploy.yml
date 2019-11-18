@@ -21,4 +21,4 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: manifest build
-        run: make DOCKER_REPO=${{ secrets.DOCKER_REPO }} EXTRA_OPTS="--push --platform=linux/amd64,linux/arm64,linux/ppc64le,linux/386,linux/arm/v7,linux/arm/v6"
+        run: make buildx DOCKER_REPO=${{ secrets.DOCKER_REPO }} EXTRA_OPTS="--push --platform=linux/amd64,linux/arm64,linux/ppc64le,linux/386,linux/arm/v7,linux/arm/v6"

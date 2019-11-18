@@ -1,8 +1,8 @@
-FROM golang:1.12-alpine3.10 as build
+FROM golang:1.12-alpine as build
 
 WORKDIR /go/src/github.com/DNSCrypt/dnscrypt-proxy/
 
-ARG DNSCRYPT_PROXY_VERSION=2.0.31
+ARG DNSCRYPT_PROXY_VERSION=2.0.33
 ARG DNSCRYPT_PROXY_URL=https://github.com/DNSCrypt/dnscrypt-proxy/archive/
 
 ENV CGO_ENABLED 0
@@ -21,20 +21,6 @@ COPY dnscrypt-proxy.toml ./
 # ----------------------------------------------------------------------------
 
 FROM scratch
-
-ARG BUILD_DATE
-ARG BUILD_VERSION
-ARG VCS_REF
-
-LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.authors="Kyle Harding <https://klutchell.dev>"
-LABEL org.opencontainers.image.url="https://klutchell.dev/dnscrypt-proxy"
-LABEL org.opencontainers.image.documentation="https://klutchell.dev/dnscrypt-proxy"
-LABEL org.opencontainers.image.source="https://klutchell.dev/dnscrypt-proxy"
-LABEL org.opencontainers.image.version="${BUILD_VERSION}"
-LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.title="klutchell/dnscrypt-proxy"
-LABEL org.opencontainers.image.description="dnscrypt-proxy is a flexible DNS proxy, with support for encrypted DNS protocols"
 
 COPY --from=build /etc/passwd /etc/group /etc/
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/

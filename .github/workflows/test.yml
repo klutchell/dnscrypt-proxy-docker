@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: platform build
-        run: make build EXTRA_OPTS=--platform=${{ matrix.PLATFORM }}
+        run: make buildx EXTRA_OPTS="--load --platform=${{ matrix.PLATFORM }}"
 
       - name: platform test
-        run: make test EXTRA_OPTS=--platform=${{ matrix.PLATFORM }}
+        run: make test

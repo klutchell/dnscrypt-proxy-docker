@@ -5,23 +5,6 @@
 
 [dnscrypt-proxy](https://github.com/DNSCrypt/dnscrypt-proxy) is a flexible DNS proxy, with support for encrypted DNS protocols.
 
-## Tags
-
-These tags including rolling updates, so occasionally the associated image may change to include fixes.
-
-- `2.0.31`, `latest`
-- `2.0.30`
-- `2.0.29`
-- `2.0.28`
-- `2.0.27`
-- `2.0.25`
-- `2.0.24`
-- `2.0.23`
-- `2.0.22`
-- `2.0.21`
-- `2.0.20`
-- `2.0.19`
-
 ## Architectures
 
 The architectures supported by this image are:
@@ -44,11 +27,11 @@ make help
 # clean dangling images, containers, and build instances
 make clean
 
-# build and test on the host architecture
-make build test
+# build and test a local image
+make
 
-# cross-build for other architectures
-make build test EXTRA_OPTS=--platform=linux/arm/v7
+# cross-build on supported platforms with buildx
+make buildx EXTRA_OPTS="--load --platform=linux/arm/v7"
 ```
 
 ## Usage

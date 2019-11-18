@@ -10,7 +10,7 @@ VCS_REF := $(strip $(shell git describe --tags --always --dirty))
 
 DOCKER_CLI_EXPERIMENTAL := enabled
 BUILDX_INSTANCE_NAME := $(subst /,-,$(DOCKER_REPO))
-BUILD_OPTS += \
+BUILD_OPTS := \
 		--label "org.opencontainers.image.created=$(BUILD_DATE)" \
 		--label "org.opencontainers.image.authors=$(AUTHORS)" \
 		--label "org.opencontainers.image.url=$(SOURCE_URL)" \
@@ -34,17 +34,17 @@ COMPOSE_OPTIONS := -e COMPOSE_PROJECT_NAME -e COMPOSE_FILE -e DOCKER_REPO
 
 .PHONY: all build buildx test clean binfmt help
 
-all: build test
+all: build test ## build and test a local image
 
-build: ## build on the host architecture
+build: ## build and label a local image
 	docker build . $(BUILD_OPTS)
 
-buildx: binfmt ## cross-build on supported architectures
+buildx: binfmt ## cross-build on supported platforms with buildx
 	-docker buildx create --use --name $(BUILDX_INSTANCE_NAME)
 	-docker buildx inspect --bootstrap
 	docker buildx build . $(BUILD_OPTS)
 
-test: binfmt ## test on the host architecture
+test: binfmt ## run a simple image test with docker-compose
 	docker-compose up --force-recreate --abort-on-container-exit
 	docker-compose down
 
@@ -58,4 +58,4 @@ binfmt:
 	docker run --rm --privileged aptman/qus -s -- -p
 
 help: ## display available commands
-	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN (FS = ":.*?## "); (printf "\033[36m%-30s\033[0m %s\n", $$1, $$2)'
+	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

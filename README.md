@@ -48,12 +48,8 @@ docker run --rm klutchell/dnscrypt-proxy --help
 # run dnscrypt proxy server on host port 53
 docker run -p 53:5053/tcp -p 53:5053/udp klutchell/dnscrypt-proxy
 
-# copy the example configuration files from the image to a host directory
-docker run -d --name proxy --rm klutchell/dnscrypt-proxy
-docker cp proxy:/config /path/to/config
-docker stop proxy
-
 # run dnscrypt proxy server with configuration mounted from a host directory
+# note that the files must be readable by world, or owned by nobody:nogroup
 docker run -p 53:5053/udp -v /path/to/config:/config klutchell/dnscrypt-proxy
 ```
 

@@ -1,5 +1,5 @@
 DOCKER_REPO := klutchell/dnscrypt-proxy
-TAG := 2.0.33
+TAG := 2.0.34
 AUTHORS := Kyle Harding <https://klutchell.dev>
 SOURCE_URL := https://github.com/$(DOCKER_REPO)
 DESCRIPTION := dnscrypt-proxy is a flexible DNS proxy, with support for encrypted DNS protocols

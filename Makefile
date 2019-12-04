@@ -11,18 +11,18 @@ VCS_REF := $(strip $(shell git describe --tags --always --dirty))
 DOCKER_CLI_EXPERIMENTAL := enabled
 BUILDX_INSTANCE_NAME := $(subst /,-,$(DOCKER_REPO))
 BUILD_OPTS := \
-		--label "org.opencontainers.image.created=$(BUILD_DATE)" \
-		--label "org.opencontainers.image.authors=$(AUTHORS)" \
-		--label "org.opencontainers.image.url=$(SOURCE_URL)" \
-		--label "org.opencontainers.image.documentation=$(SOURCE_URL)" \
-		--label "org.opencontainers.image.source=$(SOURCE_URL)" \
-		--label "org.opencontainers.image.version=$(BUILD_VERSION)" \
-		--label "org.opencontainers.image.revision=$(VCS_REF)" \
-		--label "org.opencontainers.image.title=$(DOCKER_REPO)" \
-		--label "org.opencontainers.image.description=$(DESCRIPTION)" \
-		--tag $(DOCKER_REPO):$(TAG) \
-		--tag $(DOCKER_REPO):latest \
-		$(EXTRA_OPTS)
+	--label "org.opencontainers.image.created=$(BUILD_DATE)" \
+	--label "org.opencontainers.image.authors=$(AUTHORS)" \
+	--label "org.opencontainers.image.url=$(SOURCE_URL)" \
+	--label "org.opencontainers.image.documentation=$(SOURCE_URL)" \
+	--label "org.opencontainers.image.source=$(SOURCE_URL)" \
+	--label "org.opencontainers.image.version=$(BUILD_VERSION)" \
+	--label "org.opencontainers.image.revision=$(VCS_REF)" \
+	--label "org.opencontainers.image.title=$(DOCKER_REPO)" \
+	--label "org.opencontainers.image.description=$(DESCRIPTION)" \
+	--tag $(DOCKER_REPO):$(TAG) \
+	--tag $(DOCKER_REPO):latest \
+	$(EXTRA_OPTS)
 
 COMPOSE_PROJECT_NAME := $(subst /,-,$(DOCKER_REPO))
 COMPOSE_FILE := test/docker-compose.yml

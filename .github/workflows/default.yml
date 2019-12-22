@@ -44,7 +44,7 @@ jobs:
       - name: image test
         run: |
           docker run --rm -d --name dnscrypt ${GITHUB_REPOSITORY}
-          docker run --rm --link dnscrypt uzyexe/drill -p 5053 dnscrypt.info @dnscrypt
+          docker run --rm --link dnscrypt uzyexe/drill -p 5053 dnscrypt.info @dnscrypt | tee /dev/stderr | grep -q NOERROR
           docker stop dnscrypt
 
   deploy:
@@ -58,12 +58,12 @@ jobs:
 
       - name: source checkout
         uses: actions/checkout@v1
-
+      
       - name: github login
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${GITHUB_ACTOR}" --password-stdin
       
       - name: dockerhub login
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login index.docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       
       - name: qemu register
         run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -78,14 +78,12 @@ jobs:
             --build-arg BUILD_DATE
             --build-arg BUILD_VERSION
             --build-arg VCS_REF
-            --tag docker.pkg.github.com/${GITHUB_REPOSITORY}:${BUILD_VERSION}
-            --tag docker.pkg.github.com/${GITHUB_REPOSITORY}:latest
-            --tag docker.io/${GITHUB_REPOSITORY}:${BUILD_VERSION}
-            --tag docker.io/${GITHUB_REPOSITORY}:latest
+            --tag index.docker.io/klutchell/dnscrypt-proxy:${BUILD_VERSION}
+            --tag index.docker.io/klutchell/dnscrypt-proxy:latest
 
       - name: dockerhub description
         uses: peter-evans/dockerhub-description@v2.1.0
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          DOCKERHUB_REPOSITORY: ${GITHUB_REPOSITORY}
+          DOCKERHUB_REPOSITORY: klutchell/dnscrypt-proxy

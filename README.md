@@ -23,6 +23,12 @@ Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for 
 ```bash
 # build a local image
 docker build . -t klutchell/dnscrypt-proxy
+
+# cross-build for another platform (eg. arm32v6)
+export DOCKER_CLI_EXPERIMENTAL=enabled
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+docker buildx create --use --driver docker-container
+docker buildx build . --platform linux/arm/v6 --load -t klutchell/dnscrypt-proxy
 ```
 
 ## Test

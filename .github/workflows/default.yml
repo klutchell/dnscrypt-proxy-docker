@@ -1,0 +1,91 @@
+name: default
+
+on:
+  push:
+    branches:
+      - master
+      - releases/**
+  pull_request:
+    branches:
+      - master
+      - releases/**
+
+env:
+  BUILD_VERSION: 2.0.36
+  BUILD_DATE: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+  VCS_REF: $(git describe --tags --always --dirty)
+  DOCKER_CLI_EXPERIMENTAL: enabled
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        PLATFORM: [linux/amd64,linux/arm64,linux/ppc64le,linux/386,linux/arm/v7,linux/arm/v6]
+
+    steps:
+      - name: docker install
+        run: curl -fsSL get.docker.com | sh
+
+      - name: source checkout
+        uses: actions/checkout@v1
+
+      - name: qemu register
+        run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      
+      - name: buildx create
+        run: docker buildx create --use --driver docker-container
+
+      - name: image build
+        run: docker buildx build . --pull --platform ${{ matrix.PLATFORM }} --tag ${GITHUB_REPOSITORY} --load
+
+      - name: image test
+        run: |
+          docker run --rm -d --name dnscrypt ${GITHUB_REPOSITORY}
+          docker run --rm --link dnscrypt uzyexe/drill -p 5053 dnscrypt.info @dnscrypt
+          docker stop dnscrypt
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: docker install
+        run: curl -fsSL get.docker.com | sh
+
+      - name: source checkout
+        uses: actions/checkout@v1
+
+      - name: github login
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${GITHUB_ACTOR}" --password-stdin
+      
+      - name: dockerhub login
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      
+      - name: qemu register
+        run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+      
+      - name: buildx create
+        run: docker buildx create --use --driver docker-container
+
+      - name: manifest build
+        run: >-
+            docker buildx build . --pull --push
+            --platform=linux/amd64,linux/arm64,linux/ppc64le,linux/386,linux/arm/v7,linux/arm/v6
+            --build-arg BUILD_DATE
+            --build-arg BUILD_VERSION
+            --build-arg VCS_REF
+            --tag docker.pkg.github.com/${GITHUB_REPOSITORY}:${BUILD_VERSION}
+            --tag docker.pkg.github.com/${GITHUB_REPOSITORY}:latest
+            --tag docker.io/${GITHUB_REPOSITORY}:${BUILD_VERSION}
+            --tag docker.io/${GITHUB_REPOSITORY}:latest
+
+      - name: dockerhub description
+        uses: peter-evans/dockerhub-description@v2.1.0
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          DOCKERHUB_REPOSITORY: ${GITHUB_REPOSITORY}

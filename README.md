@@ -18,20 +18,20 @@ The architectures supported by this image are:
 
 Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for your arch.
 
-## Building
+## Build
 
 ```bash
-# display available commands
-make help
+# build a local image
+docker build . -t klutchell/dnscrypt-proxy
+```
 
-# clean dangling images, containers, and build instances
-make clean
+## Test
 
-# build and test a local image
-make
-
-# cross-build on supported platforms with buildx
-make buildx EXTRA_OPTS="--load --platform=linux/arm/v7"
+```bash
+# run selftest on local image
+docker run --rm -d --name dnscrypt klutchell/dnscrypt-proxy
+docker run --rm -it --link dnscrypt uzyexe/drill -p 5053 dnscrypt.info @dnscrypt
+docker stop dnscrypt
 ```
 
 ## Usage
@@ -63,6 +63,8 @@ Kyle Harding: <https://klutchell.dev>
 ## Contributing
 
 Please open an issue or submit a pull request with any features, fixes, or changes.
+
+<https://github.com/klutchell/dnscrypt-proxy/issues>
 
 ## Acknowledgments
 

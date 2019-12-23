@@ -59,11 +59,8 @@ jobs:
       - name: source checkout
         uses: actions/checkout@v1
       
-      - name: github login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u "${GITHUB_ACTOR}" --password-stdin
-      
       - name: dockerhub login
-        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login index.docker.io -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
       
       - name: qemu register
         run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
@@ -78,12 +75,12 @@ jobs:
             --build-arg BUILD_DATE
             --build-arg BUILD_VERSION
             --build-arg VCS_REF
-            --tag index.docker.io/klutchell/dnscrypt-proxy:${BUILD_VERSION}
-            --tag index.docker.io/klutchell/dnscrypt-proxy:latest
+            --tag ${{ secrets.DOCKERHUB_REPOSITORY }}:${BUILD_VERSION}
+            --tag ${{ secrets.DOCKERHUB_REPOSITORY }}:latest
 
       - name: dockerhub description
         uses: peter-evans/dockerhub-description@v2.1.0
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          DOCKERHUB_REPOSITORY: klutchell/dnscrypt-proxy
+          DOCKERHUB_REPOSITORY: ${{ secrets.DOCKERHUB_REPOSITORY }}

@@ -11,7 +11,7 @@ on:
       - releases/**
 
 env:
-  BUILD_VERSION: 2.0.36
+  BUILD_VERSION: 2.0.43
   BUILD_DATE: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
   VCS_REF: $(git describe --tags --always --dirty)
   DOCKER_CLI_EXPERIMENTAL: enabled

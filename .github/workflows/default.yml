@@ -11,7 +11,7 @@ on:
       - releases/**
 
 env:
-  BUILD_VERSION: 2.0.43
+  BUILD_VERSION: "2.0.43"
   BUILD_DATE: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
   VCS_REF: $(git describe --tags --always --dirty)
   DOCKER_CLI_EXPERIMENTAL: enabled
@@ -39,7 +39,7 @@ jobs:
         run: docker buildx create --use --driver docker-container
 
       - name: image build
-        run: docker buildx build . --pull --platform ${{ matrix.PLATFORM }} --tag ${GITHUB_REPOSITORY} --load
+        run: docker buildx build . --pull --platform ${{ matrix.PLATFORM }} --tag ${GITHUB_REPOSITORY} --load --build-arg BUILD_VERSION
 
       - name: image test
         run: |
@@ -75,9 +75,10 @@ jobs:
         run: >-
             docker buildx build . --pull --push
             --platform=linux/amd64,linux/arm64,linux/ppc64le,linux/386,linux/arm/v7,linux/arm/v6
-            --build-arg BUILD_DATE
             --build-arg BUILD_VERSION
-            --build-arg VCS_REF
+            --label "org.opencontainers.image.created=${BUILD_DATE}"
+            --label "org.opencontainers.image.version=${BUILD_VERSION}"
+            --label "org.opencontainers.image.revision=${VCS_REF}"
             --tag docker.io/${{ secrets.DOCKERHUB_REPOSITORY }}:${BUILD_VERSION}
             --tag docker.io/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
 

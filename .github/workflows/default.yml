@@ -11,7 +11,7 @@ on:
       - releases/**
 
 env:
-  BUILD_VERSION: "2.0.44"
+  BUILD_VERSION: "2.0.45"
   DOCKER_CLI_EXPERIMENTAL: enabled
 
 jobs:

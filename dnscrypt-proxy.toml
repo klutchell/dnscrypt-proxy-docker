@@ -39,7 +39,7 @@
 ## To listen to all IPv4 addresses, use `listen_addresses = ['0.0.0.0:53']`
 ## To listen to all IPv4+IPv6 addresses, use `listen_addresses = ['[::]:53']`
 
-listen_addresses = ['127.0.0.1:53']
+listen_addresses = ['0.0.0.0:5053']
 
 
 ## Maximum number of simultaneous client connections to accept

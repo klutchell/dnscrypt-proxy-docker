@@ -66,7 +66,7 @@ Going forward it is recommended to provide an external configuration file as sho
 
 Kyle Harding <https://klutchell.dev>
 
-[![](https://cdn.buymeacoffee.com/buttons/default-orange.png)](https://www.buymeacoffee.com/klutchell)
+[Buy me a beer](https://buymeacoffee.com/klutchell)
 
 ## Contributing
 

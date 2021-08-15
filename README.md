@@ -22,7 +22,7 @@ Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for 
 
 ```bash
 # build a local image
-docker build . --pull -t klutchell/dnscrypt-proxy --build-arg "BUILD_VERSION=2.0.45"
+docker build . --pull -t klutchell/dnscrypt-proxy --build-arg "BUILD_VERSION=2.1.0"
 
 # cross-build for another platform (eg. arm32v6)
 export DOCKER_CLI_EXPERIMENTAL=enabled

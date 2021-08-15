@@ -3,7 +3,7 @@ name: default
 on: push
 
 env:
-  BUILD_VERSION: "2.0.45"
+  BUILD_VERSION: "2.1.0"
   DOCKER_CLI_EXPERIMENTAL: enabled
 
 jobs:

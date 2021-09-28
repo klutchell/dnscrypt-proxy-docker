@@ -11,8 +11,6 @@ The architectures supported by this image are:
 
 - `linux/amd64`
 - `linux/arm64`
-- `linux/ppc64le`
-- `linux/386`
 - `linux/arm/v7`
 - `linux/arm/v6`
 
@@ -22,7 +20,7 @@ Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for 
 
 ```bash
 # build a local image
-docker build . --pull -t klutchell/dnscrypt-proxy --build-arg "BUILD_VERSION=2.1.0"
+docker build . --pull -t klutchell/dnscrypt-proxy
 
 # cross-build for another platform (eg. arm32v6)
 export DOCKER_CLI_EXPERIMENTAL=enabled
@@ -58,9 +56,6 @@ docker run -p 53:5053/tcp -p 53:5053/udp klutchell/dnscrypt-proxy
 # note that the files must be readable by world, or owned by nobody:nogroup
 docker run -p 53:5053/udp -v /path/to/config:/config klutchell/dnscrypt-proxy
 ```
-
-Note that environment variables `DNSCRYPT_SERVER_NAMES` and `DNSCRYPT_LISTEN_ADDRESSES` have been depricated.
-Going forward it is recommended to provide an external configuration file as shown above.
 
 ## Author
 

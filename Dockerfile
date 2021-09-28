@@ -7,7 +7,8 @@ ARG ARCHIVE_URL=https://github.com/DNSCrypt/dnscrypt-proxy/archive/
 
 ENV CGO_ENABLED 0
 
-RUN apk add --no-cache ca-certificates=20191127-r0 curl=7.67.0-r5 \
+# hadolint ignore=DL3018
+RUN apk add --no-cache ca-certificates curl \
 	&& curl -L "${ARCHIVE_URL}${ARCHIVE_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
 	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1 -C /go/src/github.com/DNSCrypt \
 	&& go build -v -ldflags="-s -w"

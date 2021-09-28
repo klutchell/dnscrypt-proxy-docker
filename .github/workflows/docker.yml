@@ -10,7 +10,6 @@ on:
 
 env:
   platforms: "linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6"
-  images: "docker.io/${{ github.repository }},ghcr.io/${{ github.repository }}"
 
 jobs:
 
@@ -24,6 +23,13 @@ jobs:
       json: ${{ steps.meta.outputs.json }}
 
     steps:
+      - name: ghcr.io images
+        run: echo "images=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
+
+      - name: docker.io images
+        if: github.event_name != 'pull_request'
+        run: echo "images=docker.io/${{ github.repository }},${{ env.images }}" >> $GITHUB_ENV
+
       - uses: actions/checkout@v2
 
       - id: meta
@@ -52,6 +58,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to docker.io
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v1
         with:
           registry: docker.io

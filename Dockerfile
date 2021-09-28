@@ -2,14 +2,15 @@ FROM golang:1.13.7-alpine as build
 
 WORKDIR /go/src/github.com/DNSCrypt/dnscrypt-proxy/
 
-ARG ARCHIVE_VERSION=2.1.0
+COPY VERSION .
+
 ARG ARCHIVE_URL=https://github.com/DNSCrypt/dnscrypt-proxy/archive/
 
 ENV CGO_ENABLED 0
 
 # hadolint ignore=DL3018
 RUN apk add --no-cache ca-certificates curl \
-	&& curl -L "${ARCHIVE_URL}${ARCHIVE_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
+	&& curl -L "${ARCHIVE_URL}$(head -n1 VERSION).tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
 	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1 -C /go/src/github.com/DNSCrypt \
 	&& go build -v -ldflags="-s -w"
 

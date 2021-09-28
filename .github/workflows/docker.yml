@@ -10,7 +10,6 @@ on:
 
 env:
   platforms: "linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6"
-  images: "docker.io/${{ github.repository }},ghcr.io/${{ github.repository }}"
 
 jobs:
 
@@ -24,12 +23,20 @@ jobs:
       json: ${{ steps.meta.outputs.json }}
 
     steps:
+      - name: ghcr.io images
+        if: secrets.GITHUB_TOKEN != ''
+        run: echo "images=ghcr.io/${{ github.repository }},${{ env.images }}" >> $GITHUB_ENV
+
+      - name: docker.io images
+        if: secrets.DOCKERHUB_TOKEN != ''
+        run: echo "images=docker.io/${{ github.repository }},${{ env.images }}" >> $GITHUB_ENV
+
       - uses: actions/checkout@v2
 
       - id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.images }}
+          images: env.images
 
   build:
     runs-on: ubuntu-20.04
@@ -45,6 +52,7 @@ jobs:
           df --human-readable
 
       - name: Login to ghcr.io
+        if: secrets.GITHUB_TOKEN != ''
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
@@ -52,6 +60,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to docker.io
+        if: secrets.DOCKERHUB_TOKEN != ''
         uses: docker/login-action@v1
         with:
           registry: docker.io

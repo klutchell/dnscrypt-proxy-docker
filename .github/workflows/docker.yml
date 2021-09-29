@@ -14,14 +14,15 @@ env:
   local_tag: localhost:5000/${{ github.repository }}:latest
 
 jobs:
-  docker-meta:
+
+  build:
     runs-on: ubuntu-20.04
 
-    outputs:
-      tags: ${{ steps.meta.outputs.tags }}
-      labels: ${{ steps.meta.outputs.labels }}
-      version: ${{ steps.meta.outputs.version }}
-      json: ${{ steps.meta.outputs.json }}
+    services:
+      registry:
+        image: registry:2.7.1
+        ports:
+          - 5000:5000
 
     steps:
       - uses: actions/checkout@v2
@@ -36,19 +37,6 @@ jobs:
             type=ref,event=pr
             type=sha
 
-  build:
-    runs-on: ubuntu-20.04
-    needs: docker-meta
-
-    services:
-      registry:
-        image: registry:2.7.1
-        ports:
-          - 5000:5000
-
-    steps:
-      - uses: actions/checkout@v2
-
       - uses: docker/setup-qemu-action@v1
 
       - uses: docker/setup-buildx-action@v1
@@ -58,12 +46,12 @@ jobs:
       - uses: docker/build-push-action@v2
         with:
           platforms: ${{ env.platforms }}
-          labels: ${{ needs.docker-meta.outputs.labels }}
+          labels: ${{ steps.meta.outputs.labels }}
           tags: ${{ env.local_tag }}
           cache-to: type=gha,mode=max
           cache-from: |
             type=gha
-            ${{ needs.docker-meta.outputs.tags }}
+            ${{ steps.meta.outputs.tags }}
             docker.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:latest
           push: true
@@ -98,12 +86,12 @@ jobs:
         continue-on-error: ${{ github.event_name == 'pull_request' }}
         with:
           platforms: ${{ env.platforms }}
-          labels: ${{ needs.docker-meta.outputs.labels }}
-          tags: ${{ needs.docker-meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-to: type=gha,mode=max
           cache-from: |
             type=gha
-            ${{ needs.docker-meta.outputs.tags }}
+            ${{ steps.meta.outputs.tags }}
             docker.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:latest
             ${{ env.local_tag }}

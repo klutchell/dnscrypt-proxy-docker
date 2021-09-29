@@ -10,9 +10,10 @@ on:
 
 env:
   platforms: "linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6"
+  images: "docker.io/${{ github.repository }},ghcr.io/${{ github.repository }}"
+  local_tag: localhost:5000/${{ github.repository }}:latest
 
 jobs:
-
   docker-meta:
     runs-on: ubuntu-20.04
 
@@ -23,47 +24,29 @@ jobs:
       json: ${{ steps.meta.outputs.json }}
 
     steps:
-      - name: ghcr.io images
-        run: echo "images=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
-
-      - name: docker.io images
-        if: github.event_name != 'pull_request'
-        run: echo "images=docker.io/${{ github.repository }},${{ env.images }}" >> $GITHUB_ENV
-
       - uses: actions/checkout@v2
 
       - id: meta
         uses: docker/metadata-action@v3
         with:
           images: ${{ env.images }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
 
   build:
     runs-on: ubuntu-20.04
     needs: docker-meta
 
+    services:
+      registry:
+        image: registry:2.7.1
+        ports:
+          - 5000:5000
+
     steps:
-      - name: Free disk space
-        run: |
-          df --human-readable
-          sudo apt-get clean
-          docker rmi $(docker image ls --all --quiet) || true
-          rm -rf "${AGENT_TOOLSDIRECTORY}"
-          df --human-readable
-
-      - name: Login to ghcr.io
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Login to docker.io
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v1
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: actions/checkout@v2
 
       - uses: docker/setup-qemu-action@v1
 
@@ -71,46 +54,63 @@ jobs:
         with:
           driver-opts: network=host
 
-      - uses: actions/checkout@v2
-
       - uses: docker/build-push-action@v2
         with:
           platforms: ${{ env.platforms }}
           labels: ${{ needs.docker-meta.outputs.labels }}
-          tags: ${{ needs.docker-meta.outputs.tags }}
-          push: true
+          tags: ${{ env.local_tag }}
           cache-to: type=gha,mode=max
           cache-from: |
             type=gha
             ${{ needs.docker-meta.outputs.tags }}
+            docker.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:latest
+          push: true
+
+      - name: Test functionality
+        run: |
+          for platform in $(tr ',' '\n' <<< "${{ env.platforms }}") ; do
+            docker pull --platform ${platform} ${{ env.local_tag }}
+            docker run --rm ${{ env.local_tag }} -version
+            docker run -d --name sut ${{ env.local_tag }}
+            sleep 5
+            docker run --rm --link sut uzyexe/drill -p 5053 dnscrypt.info @sut | tee /dev/stderr | grep -wq NOERROR || { docker logs sut ; exit 1 ; }
+            docker logs sut
+            docker rm -f sut
+          done
+
+      - uses: docker/login-action@v1
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/login-action@v1
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v2
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        with:
+          platforms: ${{ env.platforms }}
+          labels: ${{ needs.docker-meta.outputs.labels }}
+          tags: ${{ needs.docker-meta.outputs.tags }}
+          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha
+            ${{ needs.docker-meta.outputs.tags }}
+            docker.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:latest
+            ${{ env.local_tag }}
+          push: true
 
       - uses: peter-evans/dockerhub-description@v2
         if: github.event_name != 'pull_request'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ github.repository }}
-
-  test:
-    runs-on: ubuntu-20.04
-    needs: [docker-meta,build]
-
-    strategy:
-      matrix:
-        tag: ${{ fromJson(needs.docker-meta.outputs.json).tags }}
-        platform: [linux/amd64, linux/arm64, linux/arm/v7, linux/arm/v6]
-
-    steps:
-      - uses: docker/setup-qemu-action@v1
-
-      - name: Pull ${{ matrix.platform }} manifest
-        run: |
-          docker pull --platform ${{ matrix.platform }} ${{ matrix.tag }}
-
-      - name: Check functionality
-        run: |
-          docker run -d --name sut ${{ matrix.tag }}
-          sleep 10
-          docker run --rm --link sut uzyexe/drill -p 5053 dnscrypt.info @sut | tee /dev/stderr | grep -wq NOERROR || { docker logs sut ; exit 1 ; }
-          docker logs sut
-          docker rm -f sut

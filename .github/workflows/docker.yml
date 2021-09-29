@@ -110,6 +110,7 @@ jobs:
       - name: Check functionality
         run: |
           docker run -d --name sut ${{ matrix.tag }}
+          sleep 10
           docker run --rm --link sut uzyexe/drill -p 5053 dnscrypt.info @sut | tee /dev/stderr | grep -wq NOERROR || { docker logs sut ; exit 1 ; }
           docker logs sut
           docker rm -f sut

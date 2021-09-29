@@ -82,20 +82,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - uses: docker/build-push-action@v2
+      - uses: akhilerm/tag-push-action@v2.0.0
         continue-on-error: ${{ github.event_name == 'pull_request' }}
         with:
-          platforms: ${{ env.platforms }}
-          labels: ${{ steps.meta.outputs.labels }}
-          tags: ${{ steps.meta.outputs.tags }}
-          cache-to: type=gha,mode=max
-          cache-from: |
-            type=gha
+          src: ${{ env.local_tag }}
+          dst: |
             ${{ steps.meta.outputs.tags }}
-            docker.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:latest
-            ${{ env.local_tag }}
-          push: true
 
       - uses: peter-evans/dockerhub-description@v2
         if: github.event_name != 'pull_request'

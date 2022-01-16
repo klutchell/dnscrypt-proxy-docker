@@ -19,20 +19,21 @@ Simply pulling `klutchell/dnscrypt-proxy` should retrieve the correct image for 
 ## Build
 
 ```bash
-# build a local image
-docker build . --pull -t klutchell/dnscrypt-proxy
-
-# cross-build for another platform (eg. arm32v6)
+# enable docker buildkit and experimental mode
+export DOCKER_BUILDKIT=1
 export DOCKER_CLI_EXPERIMENTAL=enabled
-docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-docker buildx create --use --driver docker-container
-docker buildx build . --pull --platform linux/arm/v6 --load -t klutchell/dnscrypt-proxy
+
+# build local image for native platform
+docker build . --tag klutchell/dnscrypt-proxy
+
+# cross-build for another platform
+docker build . --tag klutchell/dnscrypt-proxy --platform linux/arm/v7
 ```
 
 ## Test
 
 ```bash
-# run selftest on local image
+# run DNS lookup on local image
 docker run --rm -d --name dnscrypt klutchell/dnscrypt-proxy
 docker run --rm -it --link dnscrypt uzyexe/drill -p 5053 dnscrypt.info @dnscrypt
 docker stop dnscrypt
@@ -67,13 +68,6 @@ Kyle Harding <https://klutchell.dev>
 
 Please open an issue or submit a pull request with any features, fixes, or changes.
 
-<https://github.com/klutchell/dnscrypt-proxy/issues>
-
 ## Acknowledgments
 
 Original software is by the DNSCrypt project: <https://dnscrypt.info/>
-
-## License
-
-- klutchell/dnscrypt-proxy: [MIT License](./LICENSE)
-- DNSCrypt/dnscrypt-proxy: [ISC License](https://github.com/DNSCrypt/dnscrypt-proxy/blob/master/LICENSE)

@@ -32,6 +32,6 @@ COPY --from=build --chown=nobody:nogroup /config /config
 
 USER nobody
 
-ENTRYPOINT ["dnscrypt-proxy", "-config", "/config/dnscrypt-proxy.toml"]
+ENTRYPOINT [ "dnscrypt-proxy" ]
 
-RUN ["dnscrypt-proxy", "-version"]
+CMD [ "-config", "/config/dnscrypt-proxy.toml" ]

@@ -60,7 +60,7 @@ jobs:
           for platform in $(tr ',' '\n' <<< "${{ env.platforms }}") ; do
             docker pull --platform ${platform} localhost:5000/${{ env.slug }}:local
             docker run -d --name sut localhost:5000/${{ env.slug }}:local
-            sleep 30
+            sleep 60
             docker exec sut dnscrypt-proxy -version | tee /dev/stderr | grep -wq "$(head -n1 VERSION)" || { docker logs sut ; exit 1 ; }
             docker run --rm --link sut uzyexe/drill -p 5053 dnscrypt.info @sut | tee /dev/stderr | grep -wq NOERROR || { docker logs sut ; exit 1 ; }
             docker logs sut

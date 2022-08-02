@@ -2,7 +2,7 @@ FROM golang:1.18.5-alpine as build
 
 WORKDIR /go/src/github.com/DNSCrypt/dnscrypt-proxy/
 
-ARG DNSCRYPT_PROXY_VERSION=2.1.1
+ARG DNSCRYPT_PROXY_VERSION=2.1.2
 
 ENV CGO_ENABLED 0
 

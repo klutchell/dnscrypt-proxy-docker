@@ -2,8 +2,8 @@
   "extends": ["config:base"],
   "regexManagers": [
     {
-      "fileMatch": ["(^|/)Dockerfile$"],
-      "matchStrings": ["^DNSCRYPT_PROXY_VERSION=(?<currentValue>.*?)$"],
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": ["ARG DNSCRYPT_PROXY_VERSION=(?<currentValue>.*?)\\n"],
       "depNameTemplate": "DNSCrypt/dnscrypt-proxy",
       "datasourceTemplate": "github-tags"
     }

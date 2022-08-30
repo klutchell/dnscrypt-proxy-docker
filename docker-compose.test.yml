@@ -4,6 +4,9 @@ services:
 
   server:
     image: sut
+    build:
+      context: .
+      dockerfile: Dockerfile
     networks:
       - internal
 
@@ -15,7 +18,7 @@ services:
       - server
     entrypoint: ""
     command: >-
-      sh -c '
+      /bin/sh -c '
       apk add --no-cache bind-tools &&
       sleep 60 &&
       dig -p 5053 sigok.verteiltesysteme.net @server +dnssec | tee /dev/stderr | grep -wq NOERROR &&

@@ -21,6 +21,6 @@ services:
       /bin/sh -c '
       apk add --no-cache bind-tools &&
       sleep 60 &&
-      dig -p 5053 sigok.verteiltesysteme.net @server +dnssec | tee /dev/stderr | grep -wq NOERROR &&
-      dig -p 5053 sigfail.verteiltesysteme.net @server +dnssec | tee /dev/stderr | grep -wq SERVFAIL
+      dig -p 5053 dnssec-tools.org @server +dnssec | tee /dev/stderr | grep -wq NOERROR &&
+      dig -p 5053 dnssec-failed.org @server +dnssec | tee /dev/stderr | grep -wq SERVFAIL
       '

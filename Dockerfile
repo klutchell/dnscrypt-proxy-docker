@@ -1,16 +1,20 @@
-FROM golang:1.19.2-alpine as build
+FROM --platform=$BUILDPLATFORM golang:1.19.2-alpine as build
 
 WORKDIR /go/src/github.com/DNSCrypt/dnscrypt-proxy/
 
 ARG DNSCRYPT_PROXY_VERSION=2.1.2
 
-ENV CGO_ENABLED 0
-
 # hadolint ignore=DL3018
 RUN apk add --no-cache ca-certificates curl \
-	&& curl -L "https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
+	&& curl -fsSL "https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
 	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1 -C /go/src/github.com/DNSCrypt \
-	&& go build -v -ldflags="-s -w"
+	&& go mod vendor
+
+ENV CGO_ENABLED 0
+
+ARG TARGETOS TARGETARCH
+
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -v -ldflags="-s -w" -mod vendor
 
 WORKDIR /config
 

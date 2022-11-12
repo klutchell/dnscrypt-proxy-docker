@@ -1,7 +1,7 @@
 // https://github.com/docker/metadata-action#bake-definition
 target "docker-metadata-action" {}
 
-target "build" {
+target "default" {
   inherits = ["docker-metadata-action"]
   context = "./"
   dockerfile = "Dockerfile"

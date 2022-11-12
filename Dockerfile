@@ -1,22 +1,20 @@
-FROM --platform=$BUILDPLATFORM golang:1.19.2-alpine as build
+FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.19.2 as build
 
 WORKDIR /src
 
 ARG DNSCRYPT_PROXY_VERSION=2.1.2
 
-# hadolint ignore=DL3018
-RUN apk add --no-cache ca-certificates curl \
-	&& curl -fsSL "https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz" -o /tmp/dnscrypt-proxy.tar.gz \
-	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1 \
-	&& go mod vendor
+ADD --chown=nonroot:nonroot https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz /tmp/dnscrypt-proxy.tar.gz
+
+RUN tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1
 
 WORKDIR /src/dnscrypt-proxy
 
-ENV CGO_ENABLED 0
-
 ARG TARGETOS TARGETARCH
 
-RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -v -ldflags="-s -w" -mod vendor
+RUN --mount=type=cache,target=/home/nonroot/.cache/go-build,uid=65532,gid=65532 \
+    --mount=type=cache,target=/go/pkg \
+	CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -v -ldflags="-s -w" -mod vendor
 
 WORKDIR /config
 
@@ -26,14 +24,13 @@ COPY dnscrypt-proxy.toml ./
 
 # ----------------------------------------------------------------------------
 
-FROM scratch
-
-COPY --from=build /etc/passwd /etc/group /etc/
-COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# hadolint ignore=DL3007
+FROM cgr.dev/chainguard/static:latest
 
 COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
 COPY --from=build --chown=nobody:nogroup /config /config
 
+# TODO: switch to 'nonroot' user
 USER nobody
 
 ENTRYPOINT [ "dnscrypt-proxy" ]

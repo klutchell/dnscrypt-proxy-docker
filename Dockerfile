@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.19.2 as build
+FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.19.3 as build
 
 WORKDIR /src
 

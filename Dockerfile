@@ -2,7 +2,7 @@ FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.20.0 as build
 
 WORKDIR /src
 
-ARG DNSCRYPT_PROXY_VERSION=2.1.3
+ARG DNSCRYPT_PROXY_VERSION=2.1.4
 
 ADD --chown=nonroot:nonroot https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz /tmp/dnscrypt-proxy.tar.gz
 

@@ -24,11 +24,26 @@ COPY dnscrypt-proxy.toml ./
 
 # ----------------------------------------------------------------------------
 
+FROM alpine:3.17 AS bind-tools
+
+# hadolint ignore=DL3018
+RUN apk add --no-cache bind-tools=9.18.11-r0 binutils
+
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
+RUN ldd /usr/bin/dig | awk '{print $3}' | \
+    xargs -I{} sh -c "mkdir -vp \$(dirname /opt{}) && cp -v {} /opt{}"
+
+# ----------------------------------------------------------------------------
+
 # hadolint ignore=DL3007
 FROM cgr.dev/chainguard/static:latest
 
 COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
 COPY --from=build --chown=nobody:nogroup /config /config
+
+COPY --from=bind-tools /usr/bin/dig /usr/local/bin/
+COPY --from=bind-tools /opt/ /
 
 # TODO: switch to 'nonroot' user
 USER nobody

@@ -9,25 +9,35 @@ services:
       dockerfile: Dockerfile
     command: -config /config/dnscrypt-proxy.toml -loglevel 0
 
-  version:
-    image: localhost:5000/sut
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: -version
-
   sut:
     image: alpine:3.17
     depends_on:
       - server
-      - version
-    entrypoint: ""
-    command: >-
-      /bin/sh -c '
-      apk add --no-cache bind-tools &&
-      dig @server -p 5053 dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR &&
-      dig @server -p 5053 fail01.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)" &&
-      dig @server -p 5053 fail02.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)" &&
-      dig @server -p 5053 fail03.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)" &&
-      dig @server -p 5053 fail04.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
-      '
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /test
+    entrypoint:
+      - /bin/sh
+      - -c
+    command:
+      - |
+        set -ex
+        apk add --no-cache bind-tools docker-cli docker-cli-compose
+
+        server_ip="$$(dig +short server | tail -n 1)"
+
+        while read id
+        do
+          if docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $${id} | grep -q "$${server_ip}"
+          then
+            server_id="$${id}"
+            break
+          fi
+        done < <(docker ps --format '{{.ID}}')
+        
+        docker exec $${server_id} dnscrypt-proxy -version
+        docker exec $${server_id} dig @127.0.0.1 -p 5053 dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        docker exec $${server_id} dig @127.0.0.1 -p 5053 fail01.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
+        docker exec $${server_id} dig @127.0.0.1 -p 5053 fail02.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
+        docker exec $${server_id} dig @127.0.0.1 -p 5053 fail03.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
+        docker exec $${server_id} dig @127.0.0.1 -p 5053 fail04.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"

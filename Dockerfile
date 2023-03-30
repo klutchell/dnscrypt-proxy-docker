@@ -23,11 +23,21 @@ RUN cp -a /src/dnscrypt-proxy/example-* ./
 COPY dnscrypt-proxy.toml ./
 
 # ----------------------------------------------------------------------------
+FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.20.2 as probe
 
+WORKDIR /src/dnsprobe
+
+ARG TARGETOS TARGETARCH
+
+ADD dnsprobe/ ./
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/local/bin/dnsprobe .
+
+# ----------------------------------------------------------------------------
 # hadolint ignore=DL3007
 FROM cgr.dev/chainguard/static:latest
 
 COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
+COPY --from=probe /usr/local/bin/dnsprobe /usr/local/bin/
 COPY --from=build --chown=nobody:nogroup /config /config
 
 # TODO: switch to 'nonroot' user

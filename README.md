@@ -60,6 +60,40 @@ docker run -p 53:5053/tcp -p 53:5053/udp klutchell/dnscrypt-proxy
 docker run -p 53:5053/udp -v /path/to/config:/config klutchell/dnscrypt-proxy
 ```
 
+### Probes
+
+This image includes a small DNS client called `dnsprobe` that can be used to set up health probes. `dnsprobe` is located in `/usr/local/bin/dnsprobe`.
+
+This binary can be used as a probe to tell orchestration systems whether dnscrypt-proxy is ready to serve queries, or otherwise healthy. For example, in Kubernetes environments, liveness and readiness probes could be defined as follows:
+
+```yaml
+readinessProbe:
+  timeoutSeconds: 1
+  failureThreshold: 1
+  periodSeconds: 5
+  exec:
+    command:
+      - /usr/local/bin/dnsprobe
+      - google.com
+      - 127.0.0.1:5353
+livenessProbe:
+  timeoutSeconds: 3
+  failureThreshold: 3
+  periodSeconds: 5
+  initialDelaySeconds: 30
+  exec:
+    command:
+      - /usr/local/bin/dnsprobe
+      - google.com
+      - 127.0.0.1:5353
+```
+
+`dnsprobe` asks the nameserver supplied in the second argument to resolve the name supplied as the first argument. It will exit with non-zero code if:
+
+- Any network error occurs, or the response times out after 5 seconds 
+- The DNS server returns an error (e.g. `NXDOMAIN`)
+- The DNS server returns an empty list of records
+
 ## Author
 
 Kyle Harding <https://klutchell.dev>

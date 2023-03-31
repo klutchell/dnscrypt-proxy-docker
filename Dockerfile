@@ -27,8 +27,10 @@ FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.20.2 as probe
 
 WORKDIR /src/dnsprobe
 
+ARG TARGETOS TARGETARCH
+
 ADD dnsprobe/ ./
-RUN CGO_ENABLED=0 go build -o /usr/local/bin/dnsprobe .
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/local/bin/dnsprobe .
 
 # ----------------------------------------------------------------------------
 # hadolint ignore=DL3007

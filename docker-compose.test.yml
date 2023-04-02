@@ -37,7 +37,7 @@ services:
         
         docker exec $${server_id} dnscrypt-proxy -version
 
-        docker exec $${server_id} dnsprobe dnssec.works 127.0.0.1:5053
+        docker exec $${server_id} dnsprobe -timeout=15s dnssec.works 127.0.0.1:5053
         ! docker exec $${server_id} dnsprobe foo.local 127.0.0.1:5053
         ! docker exec $${server_id} dnsprobe bar.local 127.0.0.1:5053
 

@@ -12,9 +12,14 @@ WORKDIR /src/dnscrypt-proxy
 
 ARG TARGETOS TARGETARCH
 
+ARG CGO_ENABLED=0 \
+    GOOS=$TARGETOS \
+    GOARCH=$TARGETARCH \
+    GOARM=$TARGETVARIANT
+
 RUN --mount=type=cache,target=/home/nonroot/.cache/go-build,uid=65532,gid=65532 \
     --mount=type=cache,target=/go/pkg \
-	CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -v -ldflags="-s -w" -mod vendor
+	go build -v -ldflags="-s -w" -mod vendor
 
 WORKDIR /config
 
@@ -29,8 +34,14 @@ WORKDIR /src/dnsprobe
 
 ARG TARGETOS TARGETARCH
 
-ADD dnsprobe/ ./
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /usr/local/bin/dnsprobe .
+ARG CGO_ENABLED=0 \
+    GOOS=$TARGETOS \
+    GOARCH=$TARGETARCH \
+    GOARM=$TARGETVARIANT
+
+COPY dnsprobe/ ./
+
+RUN go build -o /usr/local/bin/dnsprobe .
 
 # ----------------------------------------------------------------------------
 # hadolint ignore=DL3007

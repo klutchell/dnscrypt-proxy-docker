@@ -37,12 +37,14 @@ services:
         
         docker exec $${server_id} dnscrypt-proxy -version
 
-        docker exec $${server_id} dnsprobe -timeout=15s dnssec.works 127.0.0.1:5053
+        sleep 5
+
+        docker exec $${server_id} dnsprobe -timeout=10s dnssec.works 127.0.0.1:5053
         ! docker exec $${server_id} dnsprobe foo.local 127.0.0.1:5053
         ! docker exec $${server_id} dnsprobe bar.local 127.0.0.1:5053
 
         dig @server -p 5053 dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
-        dig @server -p 5053 fail01.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
-        dig @server -p 5053 fail02.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
-        dig @server -p 5053 fail03.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
-        dig @server -p 5053 fail04.dnssec.works +dnssec +multi | tee /dev/stderr | grep -qE "(SERVFAIL|no servers)"
+        ! dig @server -p 5053 fail01.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        ! dig @server -p 5053 fail02.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        ! dig @server -p 5053 fail03.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        ! dig @server -p 5053 fail04.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR

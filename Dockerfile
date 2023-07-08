@@ -1,10 +1,10 @@
-FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.20.5 as build
+FROM --platform=$BUILDPLATFORM golang:1.20.5-alpine3.18 as build
 
 WORKDIR /src
 
 ARG DNSCRYPT_PROXY_VERSION=2.1.4
 
-ADD --chown=nonroot:nonroot https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz /tmp/dnscrypt-proxy.tar.gz
+ADD https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz /tmp/dnscrypt-proxy.tar.gz
 
 RUN tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1
 
@@ -28,7 +28,7 @@ RUN cp -a /src/dnscrypt-proxy/example-* ./
 COPY dnscrypt-proxy.toml ./
 
 # ----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM cgr.dev/chainguard/go:1.20.5 as probe
+FROM --platform=$BUILDPLATFORM golang:1.20.5-alpine3.18 as probe
 
 WORKDIR /src/dnsprobe
 
@@ -51,7 +51,6 @@ COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
 COPY --from=probe /usr/local/bin/dnsprobe /usr/local/bin/
 COPY --from=build --chown=nobody:nogroup /config /config
 
-# TODO: switch to 'nonroot' user
 USER nobody
 
 ENTRYPOINT [ "dnscrypt-proxy" ]

@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.20.6-alpine3.18 as build
+FROM --platform=$BUILDPLATFORM golang:1.20.6-alpine3.18@sha256:7839c9f01b5502d7cb5198b2c032857023424470b3e31ae46a8261ffca72912a as build
 
 WORKDIR /src
 
@@ -28,7 +28,7 @@ RUN cp -a /src/dnscrypt-proxy/example-* ./
 COPY dnscrypt-proxy.toml ./
 
 # ----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.20.6-alpine3.18 as probe
+FROM --platform=$BUILDPLATFORM golang:1.20.6-alpine3.18@sha256:7839c9f01b5502d7cb5198b2c032857023424470b3e31ae46a8261ffca72912a as probe
 
 WORKDIR /src/dnsprobe
 
@@ -45,7 +45,7 @@ RUN go build -o /usr/local/bin/dnsprobe .
 
 # ----------------------------------------------------------------------------
 # hadolint ignore=DL3007
-FROM cgr.dev/chainguard/static:latest
+FROM cgr.dev/chainguard/static:latest@sha256:6b35c7e7084349b3a71e70219f61ea49b22d663b89b0ea07474e5b44cbc70860
 
 COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
 COPY --from=probe /usr/local/bin/dnsprobe /usr/local/bin/

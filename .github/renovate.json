@@ -1,17 +1,7 @@
 {
   "extends": [
-    "config:recommended"
-  ],
-  "regexManagers": [
-    {
-      "fileMatch": [
-        "^Dockerfile$"
-      ],
-      "matchStrings": [
-        "ARG DNSCRYPT_PROXY_VERSION=(?<currentValue>.*?)\\n"
-      ],
-      "depNameTemplate": "DNSCrypt/dnscrypt-proxy",
-      "datasourceTemplate": "github-tags"
-    }
+    "config:recommended",
+    "regexManagers:dockerfileVersions",
+    "regexManagers:githubActionsVersions"
   ]
 }

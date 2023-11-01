@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.21.3-alpine3.18@sha256:926f7f7e1ab8509b4e91d5ec6d5916ebb45155b0c8920291ba9f361d65385806 as build
+FROM --platform=$BUILDPLATFORM golang:1.21.3-alpine3.18@sha256:bd9fba964e49218519393ce78402084de252dc51ad1a471abe3b16c0a23f1c23 as build
 
 WORKDIR /src
 
@@ -29,7 +29,7 @@ RUN cp -a /src/dnscrypt-proxy/example-* ./
 COPY dnscrypt-proxy.toml ./
 
 # ----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.21.3-alpine3.18@sha256:926f7f7e1ab8509b4e91d5ec6d5916ebb45155b0c8920291ba9f361d65385806 as probe
+FROM --platform=$BUILDPLATFORM golang:1.21.3-alpine3.18@sha256:bd9fba964e49218519393ce78402084de252dc51ad1a471abe3b16c0a23f1c23 as probe
 
 WORKDIR /src/dnsprobe
 

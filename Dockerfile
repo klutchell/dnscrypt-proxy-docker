@@ -46,7 +46,7 @@ RUN go build -o /usr/local/bin/dnsprobe .
 
 # ----------------------------------------------------------------------------
 # hadolint ignore=DL3007
-FROM cgr.dev/chainguard/static:latest@sha256:a2f525dac2f9ec900283ead64eb88a6037b2989630615ee8de8a2dc7bfcf152b
+FROM cgr.dev/chainguard/static:latest@sha256:37200bd74dac036a7a40f1984eefa2123d0705540daaeda6b1faee727db66726
 
 COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
 COPY --from=probe /usr/local/bin/dnsprobe /usr/local/bin/

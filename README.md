@@ -75,7 +75,7 @@ readinessProbe:
     command:
       - /usr/local/bin/dnsprobe
       - google.com
-      - 127.0.0.1:5353
+      - 127.0.0.1:5053
 livenessProbe:
   timeoutSeconds: 3
   failureThreshold: 3
@@ -85,7 +85,7 @@ livenessProbe:
     command:
       - /usr/local/bin/dnsprobe
       - google.com
-      - 127.0.0.1:5353
+      - 127.0.0.1:5053
 ```
 
 `dnsprobe` asks the nameserver supplied in the second argument to resolve the name supplied as the first argument. It will exit with non-zero code if:

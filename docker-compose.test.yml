@@ -10,7 +10,7 @@ services:
     command: -config /config/dnscrypt-proxy.toml -loglevel 0
 
   sut:
-    image: alpine:3.19@sha256:b6e36db784908bbd0d74c93caaa8598b46cb7463275296d2d2cfca4f31aeb5d0
+    image: alpine:3.19@sha256:c5b1261d6d3e43071626931fc004f70149baeba2c8ec672bd4f27761f8e1ad6b
     depends_on:
       - server
     volumes:

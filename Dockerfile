@@ -36,7 +36,7 @@ RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} go 
 
 # ----------------------------------------------------------------------------
 # hadolint ignore=DL3007
-FROM cgr.dev/chainguard/static:latest@sha256:bda736ff75ec4b76ecd120d6ccf0b9428419cf4568a5d786a7d77ba23a9f6992
+FROM cgr.dev/chainguard/static:latest@sha256:67ed8ca8d99e12e8778c038cf88ef7c27d44f08247d317c7135a66ca9d8a7652
 
 COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
 COPY --from=probe /usr/local/bin/dnsprobe /usr/local/bin/

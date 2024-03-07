@@ -32,6 +32,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       disable_versioning: true
+      toggle_auto_merge: false
       docker_images: |
         ghcr.io/klutchell/dnscrypt-proxy,
         docker.io/klutchell/dnscrypt-proxy

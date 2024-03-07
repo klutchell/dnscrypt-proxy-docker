@@ -23,6 +23,12 @@ RUN cp -a /src/dnscrypt-proxy/example-* ./
 
 COPY dnscrypt-proxy.toml ./
 
+ARG NONROOT_UID=65532
+ARG NONROOT_GID=65532
+
+RUN addgroup -S -g ${NONROOT_GID} nonroot \
+	&& adduser -S -g nonroot -h /home/nonroot -u ${NONROOT_UID} -D -G nonroot nonroot
+
 # ----------------------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM golang:1.22.1-alpine3.18@sha256:010f3b3cedc8f35696565597245598d46ecfdab6515d35439b72d2ddf601d7de as probe
 
@@ -35,14 +41,18 @@ COPY dnsprobe/ ./
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} go build -o /usr/local/bin/dnsprobe .
 
 # ----------------------------------------------------------------------------
-# hadolint ignore=DL3007
-FROM cgr.dev/chainguard/static:latest@sha256:bda736ff75ec4b76ecd120d6ccf0b9428419cf4568a5d786a7d77ba23a9f6992
+FROM scratch
 
 COPY --from=build /src/dnscrypt-proxy/dnscrypt-proxy /usr/local/bin/
 COPY --from=probe /usr/local/bin/dnsprobe /usr/local/bin/
-COPY --from=build --chown=nobody:nogroup /config /config
+COPY --from=build /etc/passwd /etc/group /etc/
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build --chown=nonroot:nonroot /home/nonroot /home/nonroot
+COPY --from=build --chown=nonroot:nonroot /config /config
 
-USER nobody
+USER nonroot
+
+ENV PATH=$PATH:/usr/local/bin
 
 ENTRYPOINT [ "dnscrypt-proxy" ]
 

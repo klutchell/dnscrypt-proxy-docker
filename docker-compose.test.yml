@@ -34,7 +34,7 @@ services:
             break
           fi
         done < <(docker ps --format '{{.ID}}')
-        
+
         docker exec $${server_id} dnscrypt-proxy -version
 
         sleep 5

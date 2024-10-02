@@ -90,7 +90,7 @@ livenessProbe:
 
 `dnsprobe` asks the nameserver supplied in the second argument to resolve the name supplied as the first argument. It will exit with non-zero code if:
 
-- Any network error occurs, or the response times out after 5 seconds 
+- Any network error occurs, or the response times out after 5 seconds
 - The DNS server returns an error (e.g. `NXDOMAIN`)
 - The DNS server returns an empty list of records
 

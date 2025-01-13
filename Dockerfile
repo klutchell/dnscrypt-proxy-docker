@@ -3,7 +3,7 @@ FROM --platform=$BUILDPLATFORM golang:1.22.3-alpine3.18@sha256:d1a601b64de09e2fa
 WORKDIR /src
 
 # renovate: datasource=github-tags depName=DNSCrypt/dnscrypt-proxy
-ARG DNSCRYPT_PROXY_VERSION=2.1.5
+ARG DNSCRYPT_PROXY_VERSION=2.1.7
 
 ADD https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz /tmp/dnscrypt-proxy.tar.gz
 

@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.23.6-alpine3.21@sha256:f8113c4b13e2a8b3a168dceaee88ac27743cc84e959f43b9dbd2291e9c3f57a0 AS build
+FROM --platform=$BUILDPLATFORM golang:1.24.0-alpine3.21@sha256:2d40d4fc278dad38be0777d5e2a88a2c6dee51b0b29c97a764fc6c6a11ca893c AS build
 
 WORKDIR /src
 
@@ -30,7 +30,7 @@ RUN addgroup -S -g ${NONROOT_GID} nonroot \
 	&& adduser -S -g nonroot -h /home/nonroot -u ${NONROOT_UID} -D -G nonroot nonroot
 
 # ----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.23.6-alpine3.21@sha256:f8113c4b13e2a8b3a168dceaee88ac27743cc84e959f43b9dbd2291e9c3f57a0 AS probe
+FROM --platform=$BUILDPLATFORM golang:1.24.0-alpine3.21@sha256:2d40d4fc278dad38be0777d5e2a88a2c6dee51b0b29c97a764fc6c6a11ca893c AS probe
 
 WORKDIR /src/dnsprobe
 

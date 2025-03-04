@@ -53,6 +53,11 @@ module.exports = {
     fromLine: 6
   },
 
+  getChangelogDocumentedVersions: {
+    preset: 'changelog-headers',
+    clean: /^v/
+  },
+
   includeCommitWhen: (commit) => { return true; },
   getIncrementLevelFromCommit: (commit) => {
     return 'patch'
@@ -81,17 +86,5 @@ module.exports = {
     });
 
     return data;
-  },
-
-  template: [
-    '## v{{version}} - {{moment date "Y-MM-DD"}}',
-    '',
-    '{{#each commits}}',
-    '{{#if this.author}}',
-    '* {{capitalize this.subject}} [{{this.author}}]',
-    '{{else}}',
-    '* {{capitalize this.subject}}',
-    '{{/if}}',
-    '{{/each}}'
-  ].join('\n')
+  }
 }

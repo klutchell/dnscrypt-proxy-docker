@@ -1,105 +1,97 @@
 'use strict';
 
-const _ = require('lodash')
+const execSync = require('child_process').execSync;
 const fs = require('fs')
-const path = require('path')
-const semver = require('balena-semver')
-const shell = require('shelljs')
-const yaml = require('js-yaml');
+const semver = require('versionist/node_modules/balena-semver')
 
-const isESR = (version) => {
-  return /^\d{4}\.(01|1|04|4|07|7|10)\.\d+$/.test(version)
-}
+const getAuthor = (commitHash) => {
+  return execSync(`git show --quiet --format="%an" ${commitHash}`, {
+    encoding: 'utf8'
+  }).replace('\n', '');
+};
 
-const getMetaResinFromSubmodule = (documentedVersions, history, callback) => {
-  const latestDocumented = _.trim(_.last(documentedVersions.sort(semver.compare)))
-  // ESR releases do not update meta-balena versions
-  if (isESR(latestDocumented)) {
-    return callback(null, latestDocumented)
+const getRev = (documentedVersions, history, callback) => {
+
+  // Extract ARG DNSCRYPT_PROXY_VERSION from Dockerfile
+  const dockerfile = fs.readFileSync('Dockerfile', 'utf8')
+  const argVersion = dockerfile.match(/ARG DNSCRYPT_PROXY_VERSION=(\d+\.\d+\.\d+)/)[1]
+
+  if (!argVersion) {
+    return callback(new Error('Could not determine version from Dockerfile'))
   }
-  // This is a hack because git does not update all the relevant files when moving a
-  // submodule. Because of this, older repos will still have references to meta-resin
-  // and new ones will refer to meta-balena
-  const metaName = fs.existsSync('.git/modules/layers/meta-resin', fs.constants.R_OK)
-    ? 'meta-resin'
-    : 'meta-balena'
-  shell.exec(`git --git-dir .git/modules/layers/${metaName} describe --tags --exact-match`, (code, stdout, stderr) => {
-    if (code != 0) {
-      return callback(new Error(`Could not find ${metaName} submodule`))
-    }
-    const metaVersion = stdout.replace(/\s/g,'').replace(/^v/g, '')
-    if (!metaVersion) {
-      return callback(new Error(`Could not determine ${metaName} version from version ${stdout}`))
-    }
 
-    const latestDocumentedRevision = latestDocumented.includes('rev')? latestDocumented : `${semver.parse(latestDocumented).version}+rev0`
-    // semver.gt will ignore the revision numbers but still compare the version
-    // If metaVersion <= latestDocumented then the latestDocumented version is a revision of the current metaVersion
-    const latestVersion = semver.gt(metaVersion, latestDocumentedRevision) ? metaVersion : latestDocumentedRevision
-    return callback(null, latestVersion)
-  })
+  // Get the latest git tag matching semver
+  const gitVersion = execSync(`git tag --sort=-v:refname | grep -E '^v?[0-9]+\\.[0-9]+\\.[0-9]+(\\+rev[0-9]+)?$' | head -n1`, {
+    encoding: 'utf8'
+  }).replace('\n', '').replace(/^v/, '')
+
+  // When the version does not include a revision number, +rev0 is implied and must be added here
+  // in order for the increment to work correctly
+  const latestDocumented = gitVersion.includes('rev') ? gitVersion : `${gitVersion}+rev0`
+
+  console.log(`argVersion: ${argVersion}`)
+  console.log(`gitVersion: ${gitVersion}`)
+  console.log(`latestDocumented: ${latestDocumented}`)
+
+  // process.exit(0)
+
+  // semver.gt will ignore the revision numbers but still compare the version
+  // If argVersion <= latestDocumented then the latestDocumented version is a revision of the current argVersion
+  const latestVersion = semver.gt(argVersion, latestDocumented) ? argVersion : latestDocumented
+
+  console.log(`latestVersion: ${latestVersion}`)
+  return callback(null, latestVersion)
 }
 
 module.exports = {
+  editChangelog: true,
+  parseFooterTags: true,
+  updateVersion: 'update-version-file',
+
   addEntryToChangelog: {
     preset: 'prepend',
-    fromLine: 3
-  },
-  getChangelogDocumentedVersions: {
-    preset: 'changelog-headers',
-    clean: /^v/
+    fromLine: 6
   },
 
-  includeCommitWhen: 'has-changelog-entry',
+  includeCommitWhen: (commit) => { return true; },
   getIncrementLevelFromCommit: (commit) => {
     return 'patch'
   },
   incrementVersion: (currentVersion, incrementLevel) => {
-    if (isESR(currentVersion)) {
-      const [majorVersion, minorVersion, patchVersion] = currentVersion.split('.', 3);
-      return `${majorVersion}.${minorVersion}.${Number(patchVersion) + 1}`
-    }
     const parsedCurrentVersion = semver.parse(currentVersion)
-    if ( ! _.isEmpty(parsedCurrentVersion.build) ) {
+    console.log(`parsedCurrentVersion: ${JSON.stringify(parsedCurrentVersion)}`)
+    if (parsedCurrentVersion.build != null && parsedCurrentVersion.build.length > 0) {
       let revision = Number(String(parsedCurrentVersion.build).split('rev').pop())
-      if (!_.isFinite(revision)) {
+      console.log(`revision: ${revision}`)
+      if (!Number.isFinite(revision)) {
         throw new Error(`Could not extract revision number from ${currentVersion}`)
       }
       return  `${parsedCurrentVersion.version}+rev${revision + 1}`
     }
     return `${parsedCurrentVersion.version}`
   },
-  updateContract: (cwd, version, callback) => {
-      if (/^\d+\.\d+\.\d+$/.test(version) == false &&
-          /^\d+\.\d+\.\d+\+rev\d+$/.test(version) == false) {
-        return callback(new Error(`Invalid version ${version}`));
-      }
 
-      const contract = path.join(cwd, 'balena.yml');
-      if (!fs.existsSync(contract)) {
-        return callback(null, version);
-      }
+  getCurrentBaseVersion: getRev,
+  // If a 'changelog-entry' tag is found, use this as the subject rather than the
+  // first line of the commit.
+  transformTemplateData: (data) => {
+    data.commits.forEach((commit) => {
+      commit.subject = commit.footer['changelog-entry'] || commit.subject;
+      commit.author = getAuthor(commit.hash);
+    });
 
-      const content = yaml.load(fs.readFileSync(contract, 'utf8'));
-      content.version = version;
-      fs.writeFile(contract, yaml.dump(content), callback);
-  },
-  getCurrentBaseVersion: getMetaResinFromSubmodule,
-  updateVersion: 'update-version-file',
-
-  transformTemplateDataAsync: {
-    preset: 'nested-changelogs',
-    upstream: [
-      {{#upstream}}
-      {
-        pattern: '{{{pattern}}}',
-        repo: '{{repo}}',
-        owner: '{{owner}}',
-        ref: '{{ref}}'
-      },
-      {{/upstream}}
-    ]
+    return data;
   },
 
-  template: 'default'
+  template: [
+    '## v{{version}} - {{moment date "Y-MM-DD"}}',
+    '',
+    '{{#each commits}}',
+    '{{#if this.author}}',
+    '* {{capitalize this.subject}} [{{this.author}}]',
+    '{{else}}',
+    '* {{capitalize this.subject}}',
+    '{{/if}}',
+    '{{/each}}'
+  ].join('\n')
 }

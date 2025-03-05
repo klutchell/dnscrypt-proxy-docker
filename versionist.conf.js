@@ -2,7 +2,7 @@
 
 const execSync = require('child_process').execSync;
 const fs = require('fs')
-const semver = require('versionist/node_modules/balena-semver')
+// const semver = require(`balena-semver`)
 
 const getAuthor = (commitHash) => {
   return execSync(`git show --quiet --format="%an" ${commitHash}`, {
@@ -10,7 +10,19 @@ const getAuthor = (commitHash) => {
   }).replace('\n', '');
 };
 
-const getRev = (documentedVersions, history, callback) => {
+const semver_gt = async (a, b) => {
+  return execSync(`npx -y balena-semver gt ${a} ${b}`, {
+    encoding: 'utf8'
+  }).replace('\n', '')
+}
+
+const semver_parse = async (version) => {
+  return execSync(`npx -y balena-semver parse ${version}`, {
+    encoding: 'utf8'
+  }).replace('\n', '')
+}
+
+const getRev = async (documentedVersions, history, callback) => {
 
   // Extract ARG DNSCRYPT_PROXY_VERSION from Dockerfile
   const dockerfile = fs.readFileSync('Dockerfile', 'utf8')
@@ -37,7 +49,7 @@ const getRev = (documentedVersions, history, callback) => {
 
   // semver.gt will ignore the revision numbers but still compare the version
   // If argVersion <= latestDocumented then the latestDocumented version is a revision of the current argVersion
-  const latestVersion = semver.gt(argVersion, latestDocumented) ? argVersion : latestDocumented
+  const latestVersion = await semver_gt(argVersion, latestDocumented) ? argVersion : latestDocumented
 
   console.log(`latestVersion: ${latestVersion}`)
   return callback(null, latestVersion)
@@ -62,8 +74,8 @@ module.exports = {
   getIncrementLevelFromCommit: (commit) => {
     return 'patch'
   },
-  incrementVersion: (currentVersion, incrementLevel) => {
-    const parsedCurrentVersion = semver.parse(currentVersion)
+  incrementVersion: async (currentVersion, incrementLevel) => {
+    const parsedCurrentVersion = await semver_parse(currentVersion)
     console.log(`parsedCurrentVersion: ${JSON.stringify(parsedCurrentVersion)}`)
     if (parsedCurrentVersion.build != null && parsedCurrentVersion.build.length > 0) {
       let revision = Number(String(parsedCurrentVersion.build).split('rev').pop())

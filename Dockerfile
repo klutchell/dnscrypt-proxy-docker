@@ -30,6 +30,12 @@ RUN addgroup -S -g ${NONROOT_GID} nonroot \
 	&& adduser -S -g nonroot -h /home/nonroot -u ${NONROOT_UID} -D -G nonroot nonroot
 
 # ----------------------------------------------------------------------------
+FROM scratch AS conf-example
+
+# docker build . --target conf-example --output .
+COPY --from=build /config/example-dnscrypt-proxy.toml /dnscrypt-proxy.toml.example
+
+# ----------------------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM golang:1.24.3-alpine3.21@sha256:ef18ee7117463ac1055f5a370ed18b8750f01589f13ea0b48642f5792b234044 AS probe
 
 WORKDIR /src/dnsprobe

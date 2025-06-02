@@ -10,7 +10,8 @@ services:
     command: -config /config/dnscrypt-proxy.toml -loglevel 0
 
   sut:
-    image: alpine:3.21@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
+    # image: alpine:3.21@sha256:a8560b36e8b8210634f77d9f7f9efd7ffa463e380b75e2e74aff4511df3ef88c
+    image: alpine:3.20
     depends_on:
       - server
     volumes:
@@ -43,8 +44,12 @@ services:
         ! docker exec $${server_id} dnsprobe foo.local 127.0.0.1:5053
         ! docker exec $${server_id} dnsprobe bar.local 127.0.0.1:5053
 
-        dig @server -p 5053 dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
-        ! dig @server -p 5053 fail01.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
-        ! dig @server -p 5053 fail02.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
-        ! dig @server -p 5053 fail03.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
-        ! dig @server -p 5053 fail04.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        # # fail0[1-4].dnssec.works wasn't failing as expected
+        # dig @server -p 5053 dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        # ! dig @server -p 5053 fail01.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        # ! dig @server -p 5053 fail02.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        # ! dig @server -p 5053 fail03.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        # ! dig @server -p 5053 fail04.dnssec.works +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+
+        dig @server -p 5053 sigok.verteiltesysteme.net +dnssec +multi | tee /dev/stderr | grep -wq NOERROR
+        ! dig @server -p 5053 sigfail.verteiltesysteme.net +dnssec +multi | tee /dev/stderr | grep -wq NOERROR

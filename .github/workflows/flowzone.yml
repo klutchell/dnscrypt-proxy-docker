@@ -33,7 +33,6 @@ jobs:
     with:
       disable_versioning: true
       toggle_auto_merge: false
-      token_retrieval_mode: user
       docker_images: |
         ghcr.io/klutchell/dnscrypt-proxy,
         docker.io/klutchell/dnscrypt-proxy

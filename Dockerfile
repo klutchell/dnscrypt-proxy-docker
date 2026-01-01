@@ -19,9 +19,11 @@ RUN --mount=type=cache,target=/home/nonroot/.cache/go-build,uid=65532,gid=65532 
 
 WORKDIR /config
 
-RUN cp -a /src/dnscrypt-proxy/example-* ./
+# Copy example configs for reference and update listen address
+RUN cp -a /src/dnscrypt-proxy/example-* ./ \
+	&& sed -i '/^listen_addresses/s/127.0.0.1/0.0.0.0/' ./example-dnscrypt-proxy.toml
 
-COPY dnscrypt-proxy.toml ./
+COPY config/dnscrypt-proxy.toml ./
 
 ARG NONROOT_UID=65532
 ARG NONROOT_GID=65532
@@ -32,8 +34,8 @@ RUN addgroup -S -g ${NONROOT_GID} nonroot \
 # ----------------------------------------------------------------------------
 FROM scratch AS conf-example
 
-# docker build . --target conf-example --output .
-COPY --from=build /config/example-dnscrypt-proxy.toml /dnscrypt-proxy.toml.example
+# docker build . --target conf-example --output ./config
+COPY --from=build /config/example-* /
 
 # ----------------------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM golang:1.25.5-alpine3.21@sha256:b4dbd292a0852331c89dfd64e84d16811f3e3aae4c73c13d026c4d200715aff6 AS probe

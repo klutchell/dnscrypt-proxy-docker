@@ -2,12 +2,17 @@ FROM --platform=$BUILDPLATFORM golang:1.25.5-alpine3.21@sha256:b4dbd292a0852331c
 
 WORKDIR /src
 
-# renovate: datasource=github-tags depName=DNSCrypt/dnscrypt-proxy
 ARG DNSCRYPT_PROXY_VERSION=2.1.16
+# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.16
+# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/2.1.16.tar.gz
+ARG DNSCRYPT_PROXY_SHA256="7ba5aa76d3fdc6fbb667689ba13d8ac3e66be27655695a9d412e5ad4afe34f8d"
 
 ADD https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz /tmp/dnscrypt-proxy.tar.gz
 
-RUN tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
+RUN echo "${DNSCRYPT_PROXY_SHA256}  /tmp/dnscrypt-proxy.tar.gz" | sha256sum -c - \
+	&& tar xzf /tmp/dnscrypt-proxy.tar.gz --strip 1
 
 WORKDIR /src/dnscrypt-proxy
 

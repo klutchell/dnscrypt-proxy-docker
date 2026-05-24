@@ -189,7 +189,7 @@ keepalive = 30
 
 ## Set to `true` to constantly try to estimate the latency of all the resolvers
 ## and adjust the load-balancing parameters accordingly, or to `false` to disable.
-## Default is `true` that makes 'p2' `lb_strategy` work well.
+## Default is `true`, which makes the `wp2` `lb_strategy` work well.
 
 # lb_estimator = true
 
@@ -243,7 +243,7 @@ keepalive = 30
 
 ## Automatic log files rotation
 
-# Maximum log files size in MB - Set to 0 for unlimited.
+# Maximum log files size in MB - 0 uses the logger's default size limit.
 log_files_max_size = 10
 
 # How long to keep backup files, in days
@@ -257,8 +257,8 @@ log_files_max_backups = 1
 #                           Certificate Management                             #
 ###############################################################################
 
-## The maximum concurrency to reload certificates from the resolvers.
-## Default is 10.
+## The maximum concurrency to refresh resolvers (DNSCrypt, DoH, and ODoH).
+## Default is 10. Reduce this on constrained devices such as small routers.
 
 # cert_refresh_concurrency = 10
 
@@ -287,21 +287,13 @@ cert_refresh_delay = 240
 # tls_disable_session_tickets = false
 
 
-## DoH: Use TLS 1.2 and specific cipher suite instead of the server preference
-## 49199 = TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-## 49195 = TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-## 52392 = TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
-## 52393 = TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
-##
-## On non-Intel CPUs such as MIPS routers and ARM systems (Android, Raspberry Pi...),
-## uncommenting the following line may improve performance.
-## This may also help on Intel CPUs running 32-bit operating systems.
-## However, this can cause issues fetching sources or connecting to some HTTP servers,
-## and should not be set on regular CPUs.
-##
-## Keep tls_cipher_suite undefined to let the app automatically choose secure parameters.
+## Prefer RSA certificates over ECDSA for TLS connections.
+## When this is enabled, some servers may become impossible to use,
+## or may stop working later as they upgrade their configuration.
+## Changing this setting is generally not recommended, but it may
+## reduce CPU usage on small routers with slow CPUs.
 
-# tls_cipher_suite = [52392, 49199]
+# tls_prefer_rsa = false
 
 
 ## Log TLS key material to a file, for debugging purposes only.
@@ -533,7 +525,7 @@ cache_neg_max_ttl = 600
 ## Path of the DoH URL. This is not a file, but the part after the hostname
 ## in the URL. By convention, `/dns-query` is frequently chosen.
 ## For each `listen_address` the complete URL to access the server will be:
-## `https://<listen_address><path>` (ex: `https://127.0.0.1/dns-query`)
+## `https://<listen_address><path>` (ex: `https://127.0.0.1:3000/dns-query`)
 
 # path = '/dns-query'
 
@@ -560,6 +552,12 @@ cache_neg_max_ttl = 600
 
 
 ## Query log format (currently supported: tsv and ltsv)
+##
+## TSV format columns: timestamp, client_ip, query_name, query_type, return_code, duration, server, relay
+## LTSV format fields: time, host, message, type, return, cached, duration, server, relay
+##
+## The relay field shows the anonymizing relay name when using Anonymized DNS or ODoH,
+## or "-" when no relay is used.
 
 format = 'tsv'
 
@@ -748,16 +746,20 @@ format = 'tsv'
 ## Refer to the documentation for URLs of public sources.
 ##
 ## A prefix can be prepended to server names in order to
-## avoid collisions if different sources share the same for
+## avoid collisions if different sources share the same names for
 ## different servers. In that case, names listed in `server_names`
 ## must include the prefixes.
 ##
 ## If the `urls` property is missing, cache files and valid signatures
 ## must already be present. This doesn't prevent these cache files from
-## expiring after `refresh_delay` hours.
-## `refreshed_delay` must be in the [24..168] interval.
-## The minimum delay of 24 hours (1 day) avoids unnecessary requests to servers.
-## The maximum delay of 168 hours (1 week) ensures cache freshness.
+## expiring after `cache_ttl` hours.
+##
+## `refresh_delay` controls how often to download updates during normal operation.
+## Must be in the [24..168] interval (1 day to 1 week).
+##
+## `cache_ttl` controls how old the cache can be at startup before requiring
+## an immediate download. Defaults to 168 hours if not set.
+## Must be in [refresh_delay..168] interval.
 
 [sources]
 
@@ -767,6 +769,7 @@ format = 'tsv'
 urls = [
   'https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md',
   'https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md',
+  'https://cdn.jsdelivr.net/gh/DNSCrypt/dnscrypt-resolvers@master/v3/public-resolvers.md'
 ]
 cache_file = 'public-resolvers.md'
 minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
@@ -779,6 +782,7 @@ prefix = ''
 urls = [
   'https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/relays.md',
   'https://download.dnscrypt.info/resolvers-list/v3/relays.md',
+  'https://cdn.jsdelivr.net/gh/DNSCrypt/dnscrypt-resolvers@master/v3/relays.md'
 ]
 cache_file = 'relays.md'
 minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
@@ -788,13 +792,13 @@ prefix = ''
 ### ODoH (Oblivious DoH) servers and relays
 
 # [sources.odoh-servers]
-#   urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/odoh-servers.md', 'https://download.dnscrypt.info/resolvers-list/v3/odoh-servers.md']
+#   urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/odoh-servers.md', 'https://download.dnscrypt.info/resolvers-list/v3/odoh-servers.md', 'https://cdn.jsdelivr.net/gh/DNSCrypt/dnscrypt-resolvers@master/v3/odoh-servers.md']
 #   cache_file = 'odoh-servers.md'
 #   minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
 #   refresh_delay = 73
 #   prefix = ''
 # [sources.odoh-relays]
-#   urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/odoh-relays.md', 'https://download.dnscrypt.info/resolvers-list/v3/odoh-relays.md']
+#   urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/odoh-relays.md', 'https://download.dnscrypt.info/resolvers-list/v3/odoh-relays.md', 'https://cdn.jsdelivr.net/gh/DNSCrypt/dnscrypt-resolvers@master/v3/odoh-relays.md']
 #   cache_file = 'odoh-relays.md'
 #   minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
 #   refresh_delay = 73
@@ -812,7 +816,7 @@ prefix = ''
 ### This is a subset of the `public-resolvers` list, so enabling both is useless.
 
 # [sources.parental-control]
-#   urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/parental-control.md', 'https://download.dnscrypt.info/resolvers-list/v3/parental-control.md']
+#   urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/parental-control.md', 'https://download.dnscrypt.info/resolvers-list/v3/parental-control.md', 'https://cdn.jsdelivr.net/gh/DNSCrypt/dnscrypt-resolvers@master/v3/parental-control.md']
 #   cache_file = 'parental-control.md'
 #   minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
 
@@ -838,7 +842,7 @@ prefix = ''
 ##
 ## Older versions of the `dnsdist` server software had a bug with queries larger
 ## than 1500 bytes. This is fixed since `dnsdist` version 1.5.0, but
-## some server may still run an outdated version.
+## some servers may still run an outdated version.
 ##
 ## The list below enables workarounds to make non-relayed usage more reliable
 ## until the servers are fixed.
@@ -986,6 +990,7 @@ algorithm = "none"
 ## - ipcrypt-deterministic: 32 hex chars (16 bytes) - Generate with: openssl rand -hex 16
 ## - ipcrypt-nd: 32 hex chars (16 bytes) - Generate with: openssl rand -hex 16
 ## - ipcrypt-ndx: 64 hex chars (32 bytes) - Generate with: openssl rand -hex 32
+## - ipcrypt-pfx: 64 hex chars (32 bytes) - Generate with: openssl rand -hex 32
 ## Example for deterministic/nd: key = "1234567890abcdef1234567890abcdef"
 ## Example for ndx: key = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
 ## IMPORTANT: Keep this key secret

@@ -2,10 +2,10 @@ FROM --platform=$BUILDPLATFORM golang:1.25.12-alpine3.24@sha256:56961d79ea8129ef
 
 WORKDIR /src
 
-ARG DNSCRYPT_PROXY_VERSION=2.1.16
-# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.16
-# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/2.1.16.tar.gz
-ARG DNSCRYPT_PROXY_SHA256="7ba5aa76d3fdc6fbb667689ba13d8ac3e66be27655695a9d412e5ad4afe34f8d"
+ARG DNSCRYPT_PROXY_VERSION=2.1.18
+# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/2.1.18
+# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/2.1.18.tar.gz
+ARG DNSCRYPT_PROXY_SHA256="9b810d862ba07c383cc0b8f9f7f1f2ca8f74a02f849d818c4c4d37cc21a7dfa6"
 
 ADD https://github.com/DNSCrypt/dnscrypt-proxy/archive/${DNSCRYPT_PROXY_VERSION}.tar.gz /tmp/dnscrypt-proxy.tar.gz
 

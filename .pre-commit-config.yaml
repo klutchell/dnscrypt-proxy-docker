@@ -5,7 +5,9 @@ repos:
     rev: v6.0.0
     hooks:
     -   id: trailing-whitespace
+        exclude: ^config/example-
     -   id: end-of-file-fixer
+        exclude: ^config/example-
     -   id: check-yaml
     -   id: check-added-large-files
 

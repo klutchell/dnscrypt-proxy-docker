@@ -65,7 +65,7 @@ ipv4_servers = true
 # Use servers reachable over IPv6 -- Do not enable if you don't have IPv6 connectivity
 ipv6_servers = false
 
-# Use servers implementing the DNSCrypt protocol
+# Use servers implementing the DNSCrypt and PQDNSCrypt protocols
 dnscrypt_servers = true
 
 # Use servers implementing the DNS-over-HTTPS protocol
@@ -275,11 +275,19 @@ cert_refresh_delay = 240
 # cert_ignore_timestamp = false
 
 
-## DNSCrypt: Create a new, unique key for every single DNS query
+## DNSCrypt: Create a new, unique X25519 key pair for every single DNS query
 ## This may improve privacy but can also have a significant impact on CPU usage
 ## Only enable if you don't have a lot of network load
 
 # dnscrypt_ephemeral_keys = false
+
+
+## PQDNSCrypt (DNSCrypt 2026): use post-quantum cryptography when supported
+## by the server.
+## This protects the confidentiality of your queries against future quantum
+## computers ("harvest now, decrypt later").
+
+# pqdnscrypt = true
 
 
 ## DoH: Disable TLS session tickets - increases privacy but also latency
@@ -682,8 +690,6 @@ format = 'tsv'
 ## Allowed IP lists support the same patterns as IP blocklists
 ## If an IP response matches an allowed entry, the corresponding session
 ## will bypass IP filters.
-##
-## Time-based rules are also supported to make some websites only accessible at specific times of the day.
 
 [allowed_ips]
 
@@ -755,7 +761,7 @@ format = 'tsv'
 ## expiring after `cache_ttl` hours.
 ##
 ## `refresh_delay` controls how often to download updates during normal operation.
-## Must be in the [24..168] interval (1 day to 1 week).
+## Must be in the [25..169] interval; values outside that range are clamped.
 ##
 ## `cache_ttl` controls how old the cache can be at startup before requiring
 ## an immediate download. Defaults to 168 hours if not set.
@@ -929,7 +935,7 @@ skip_incompatible = false
 ## retrieved via a relay, try getting them directly. Actual queries
 ## will then always go through relays.
 
-# direct_cert_fallback = false
+# direct_cert_fallback = true
 
 
 ###############################################################################
@@ -1027,8 +1033,8 @@ enable_query_log = true
 
 ## Privacy level for the monitoring UI
 ## 0: show all details including client IPs
-## 1: anonymize client IPs (default)
-## 2: aggregate data only (no individual queries or domains shown)
+## 1: anonymize client IPs
+## 2: aggregate data only (no individual queries or domains shown) (default)
 privacy_level = 1
 
 ## Maximum number of recent query log entries to keep in memory

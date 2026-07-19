@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.25.5-alpine3.21@sha256:b4dbd292a0852331c89dfd64e84d16811f3e3aae4c73c13d026c4d200715aff6 AS build
+FROM --platform=$BUILDPLATFORM golang:1.25.12-alpine3.24@sha256:56961d79ea8129efddcc0b8643fd8a5416b4e6228cfd477e3fd61deb2672c587 AS build
 
 WORKDIR /src
 
@@ -43,7 +43,7 @@ FROM scratch AS conf-example
 COPY --from=build /config/example-* /
 
 # ----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.25.5-alpine3.21@sha256:b4dbd292a0852331c89dfd64e84d16811f3e3aae4c73c13d026c4d200715aff6 AS probe
+FROM --platform=$BUILDPLATFORM golang:1.25.12-alpine3.24@sha256:56961d79ea8129efddcc0b8643fd8a5416b4e6228cfd477e3fd61deb2672c587 AS probe
 
 WORKDIR /src/dnsprobe
 

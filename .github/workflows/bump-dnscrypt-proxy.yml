@@ -6,37 +6,47 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "dnscrypt-proxy version to bump to (e.g. 2.1.18). Leave empty to auto-detect the latest upstream release."
+        description: "dnscrypt-proxy version to bump to. Leave empty to auto-detect the latest upstream release."
         required: false
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   bump:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Generate app token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3.2.0
         with:
-          app-id: ${{ secrets.GH_APP_ID }}
+          app-id: ${{ secrets.FLOWZONE_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.0
         with:
           token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0
 
       - name: Determine current and target version
         id: versions
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
+          set -euo pipefail
           current=$(grep -oP '(?<=^ARG DNSCRYPT_PROXY_VERSION=)\S+' Dockerfile)
           echo "current=$current" >> "$GITHUB_OUTPUT"
 
-          if [ -n "${{ inputs.version }}" ]; then
-            target="${{ inputs.version }}"
+          if [ -n "$INPUT_VERSION" ]; then
+            if ! echo "$INPUT_VERSION" | grep -qP '^\d+\.\d+\.\d+$'; then
+              echo "::error::version input '$INPUT_VERSION' doesn't look like a dnscrypt-proxy version (expected X.Y.Z)"
+              exit 1
+            fi
+            target="$INPUT_VERSION"
           else
             target=$(curl -fsSL https://api.github.com/repos/DNSCrypt/dnscrypt-proxy/releases/latest | jq -r .tag_name)
           fi
@@ -55,37 +65,42 @@ jobs:
         if: steps.versions.outputs.up_to_date == 'false'
         id: existing
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ steps.versions.outputs.target }}
         run: |
-          target="${{ steps.versions.outputs.target }}"
-          count=$(gh pr list --repo "${{ github.repository }}" --state open --search "head:bump/dnscrypt-proxy-${target}" --json number --jq 'length')
+          set -euo pipefail
+          count=$(gh pr list --repo "${{ github.repository }}" --state open --search "head:bump/dnscrypt-proxy-${TARGET}" --json number --jq 'length')
           echo "exists=$([ "$count" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - name: Compute upstream SHA256
         if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
         id: hash
+        env:
+          TARGET: ${{ steps.versions.outputs.target }}
         run: |
-          target="${{ steps.versions.outputs.target }}"
-          url="https://github.com/DNSCrypt/dnscrypt-proxy/archive/${target}.tar.gz"
+          set -euo pipefail
+          url="https://github.com/DNSCrypt/dnscrypt-proxy/archive/${TARGET}.tar.gz"
           curl -fsSL "$url" -o /tmp/dnscrypt-proxy.tar.gz
           sha256=$(sha256sum /tmp/dnscrypt-proxy.tar.gz | awk '{print $1}')
           echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
 
       - name: Update Dockerfile
         if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        env:
+          TARGET: ${{ steps.versions.outputs.target }}
+          SHA256: ${{ steps.hash.outputs.sha256 }}
         run: |
-          target="${{ steps.versions.outputs.target }}"
-          sha="${{ steps.hash.outputs.sha256 }}"
+          set -euo pipefail
           sed -i \
-            -e "s|^ARG DNSCRYPT_PROXY_VERSION=.*|ARG DNSCRYPT_PROXY_VERSION=${target}|" \
-            -e "s|^# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/.*|# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/${target}|" \
-            -e "s|^# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/.*|# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/${target}.tar.gz|" \
-            -e "s|^ARG DNSCRYPT_PROXY_SHA256=.*|ARG DNSCRYPT_PROXY_SHA256=\"${sha}\"|" \
+            -e "s|^ARG DNSCRYPT_PROXY_VERSION=.*|ARG DNSCRYPT_PROXY_VERSION=${TARGET}|" \
+            -e "s|^# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/.*|# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/${TARGET}|" \
+            -e "s|^# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/.*|# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/${TARGET}.tar.gz|" \
+            -e "s|^ARG DNSCRYPT_PROXY_SHA256=.*|ARG DNSCRYPT_PROXY_SHA256=\"${SHA256}\"|" \
             Dockerfile
 
       - name: Set up Docker Buildx
         if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4.2.0
 
       - name: Regenerate example configs
         if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
@@ -99,22 +114,47 @@ jobs:
           DOCKER_BUILDKIT: "1"
         run: docker build . --tag dnscrypt-proxy:bump-check
 
+      - name: Create commit via REST API
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        id: commit
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TARGET: ${{ steps.versions.outputs.target }}
+        run: |
+          set -euo pipefail
+          repo="${{ github.repository }}"
+          branch="bump/dnscrypt-proxy-${TARGET}"
+          base_sha=$(git rev-parse HEAD)
+          base_tree=$(gh api "repos/${repo}/git/commits/${base_sha}" --jq .tree.sha)
+
+          tree_json="[]"
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            base64 -w0 "$f" > /tmp/blob.b64
+            blob_sha=$(gh api "repos/${repo}/git/blobs" -f encoding=base64 -F content=@/tmp/blob.b64 --jq .sha)
+            tree_json=$(echo "$tree_json" | jq --arg path "$f" --arg sha "$blob_sha" '. + [{path: $path, mode: "100644", type: "blob", sha: $sha}]')
+          done < <(git status --porcelain | awk '{print $2}')
+
+          new_tree=$(jq -n --arg base_tree "$base_tree" --argjson tree "$tree_json" '{base_tree: $base_tree, tree: $tree}' \
+            | gh api "repos/${repo}/git/trees" --input - --jq .sha)
+
+          new_commit=$(jq -n --arg message "Bump dnscrypt-proxy to ${TARGET}" --arg tree "$new_tree" --arg parent "$base_sha" \
+            '{message: $message, tree: $tree, parents: [$parent]}' \
+            | gh api "repos/${repo}/git/commits" --input - --jq .sha)
+
+          gh api "repos/${repo}/git/refs" -f ref="refs/heads/${branch}" -f sha="${new_commit}"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
       - name: Open pull request
         if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TARGET: ${{ steps.versions.outputs.target }}
+          BRANCH: ${{ steps.commit.outputs.branch }}
         run: |
-          target="${{ steps.versions.outputs.target }}"
-          branch="bump/dnscrypt-proxy-${target}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$branch"
-          git add Dockerfile config/example-*
-          git commit -m "Bump dnscrypt-proxy to ${target}"
-          git push origin "$branch"
-
+          set -euo pipefail
           printf '%s\n' \
-            "Automated bump to [dnscrypt-proxy ${target}](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/${target})." \
+            "Automated bump to [dnscrypt-proxy ${TARGET}](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/${TARGET})." \
             "" \
             "SHA256 verified and computed on this runner, \`config/example-*\` regenerated via \`docker build --target conf-example\`, and a sanity build passed. See [CONTRIBUTING.md](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md#packaging-new-dnscrypt-proxy-releases) for the process this follows." \
             "" \
@@ -123,7 +163,7 @@ jobs:
 
           gh pr create \
             --repo "${{ github.repository }}" \
-            --title "Bump dnscrypt-proxy to ${target}" \
+            --title "Bump dnscrypt-proxy to ${TARGET}" \
             --body-file /tmp/pr-body.md \
             --base main \
-            --head "$branch"
+            --head "$BRANCH"

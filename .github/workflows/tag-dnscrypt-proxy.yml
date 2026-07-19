@@ -7,33 +7,37 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   tag:
     if: |
       github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.head.ref, 'bump/dnscrypt-proxy-')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Generate app token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3.2.0
         with:
-          app-id: ${{ secrets.GH_APP_ID }}
+          app-id: ${{ secrets.FLOWZONE_APP_ID }}
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          permission-contents: write
 
       - name: Checkout merge commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.0
         with:
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ github.token }}
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
 
       - name: Verify only expected files changed
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          changed=$(gh pr diff "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --name-only)
+          set -euo pipefail
+          changed=$(gh pr diff "$PR_NUMBER" --repo "${{ github.repository }}" --name-only)
           echo "Changed files:"
           echo "$changed"
           unexpected=$(echo "$changed" | grep -v -E '^(Dockerfile|config/example-)' || true)
@@ -44,21 +48,25 @@ jobs:
 
       - name: Resolve content commit
         id: commit
+        env:
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
         run: |
-          merge_sha="${{ github.event.pull_request.merge_commit_sha }}"
+          set -euo pipefail
           # non-squash merges put the actual content on the merge commit's 2nd parent;
           # squash merges make the merge commit itself the content commit (no 2nd parent)
-          if content_sha=$(git rev-parse --verify -q "${merge_sha}^2"); then
+          if content_sha=$(git rev-parse --verify -q "${MERGE_SHA}^2"); then
             echo "sha=$content_sha" >> "$GITHUB_OUTPUT"
           else
-            echo "sha=$merge_sha" >> "$GITHUB_OUTPUT"
+            echo "sha=$MERGE_SHA" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Determine version and re-verify SHA256
         id: version
+        env:
+          CONTENT_SHA: ${{ steps.commit.outputs.sha }}
         run: |
-          content_sha="${{ steps.commit.outputs.sha }}"
-          git show "${content_sha}:Dockerfile" > /tmp/Dockerfile.content
+          set -euo pipefail
+          git show "${CONTENT_SHA}:Dockerfile" > /tmp/Dockerfile.content
           version=$(grep -oP '(?<=^ARG DNSCRYPT_PROXY_VERSION=)\S+' /tmp/Dockerfile.content)
           pinned_sha256=$(grep -oP '(?<=^ARG DNSCRYPT_PROXY_SHA256=")[^"]+' /tmp/Dockerfile.content)
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -72,10 +80,11 @@ jobs:
       - name: Check tag doesn't already exist
         id: exists
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          version="${{ steps.version.outputs.version }}"
-          if gh api "repos/${{ github.repository }}/git/ref/tags/v${version}" >/dev/null 2>&1; then
+          set -euo pipefail
+          if gh api "repos/${{ github.repository }}/git/ref/tags/v${VERSION}" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -85,22 +94,16 @@ jobs:
         if: steps.exists.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          CONTENT_SHA: ${{ steps.commit.outputs.sha }}
         run: |
-          version="${{ steps.version.outputs.version }}"
-          content_sha="${{ steps.commit.outputs.sha }}"
+          set -euo pipefail
           now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-          tag_sha=$(gh api "repos/${{ github.repository }}/git/tags" --input - <<EOF | jq -r .sha
-          {
-            "tag": "v${version}",
-            "message": "v${version}",
-            "object": "${content_sha}",
-            "type": "commit",
-            "tagger": { "name": "github-actions[bot]", "email": "github-actions[bot]@users.noreply.github.com", "date": "${now}" }
-          }
-          EOF
-          )
+          tag_sha=$(jq -n --arg tag "v${VERSION}" --arg message "v${VERSION}" --arg object "$CONTENT_SHA" --arg date "$now" \
+            '{tag: $tag, message: $message, object: $object, type: "commit", tagger: {name: "github-actions[bot]", email: "github-actions[bot]@users.noreply.github.com", date: $date}}' \
+            | gh api "repos/${{ github.repository }}/git/tags" --input - --jq .sha)
 
           gh api "repos/${{ github.repository }}/git/refs" \
-            -f ref="refs/tags/v${version}" \
+            -f ref="refs/tags/v${VERSION}" \
             -f sha="${tag_sha}"

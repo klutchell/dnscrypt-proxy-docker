@@ -1,0 +1,106 @@
+name: Tag dnscrypt-proxy release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tag:
+    if: |
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'bump/dnscrypt-proxy-')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Checkout merge commit
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Verify only expected files changed
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          changed=$(gh pr diff "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --name-only)
+          echo "Changed files:"
+          echo "$changed"
+          unexpected=$(echo "$changed" | grep -v -E '^(Dockerfile|config/example-)' || true)
+          if [ -n "$unexpected" ]; then
+            echo "::error::Unexpected files changed in this bump PR, refusing to tag: $unexpected"
+            exit 1
+          fi
+
+      - name: Resolve content commit
+        id: commit
+        run: |
+          merge_sha="${{ github.event.pull_request.merge_commit_sha }}"
+          # non-squash merges put the actual content on the merge commit's 2nd parent;
+          # squash merges make the merge commit itself the content commit (no 2nd parent)
+          if content_sha=$(git rev-parse --verify -q "${merge_sha}^2"); then
+            echo "sha=$content_sha" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=$merge_sha" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Determine version and re-verify SHA256
+        id: version
+        run: |
+          content_sha="${{ steps.commit.outputs.sha }}"
+          git show "${content_sha}:Dockerfile" > /tmp/Dockerfile.content
+          version=$(grep -oP '(?<=^ARG DNSCRYPT_PROXY_VERSION=)\S+' /tmp/Dockerfile.content)
+          pinned_sha256=$(grep -oP '(?<=^ARG DNSCRYPT_PROXY_SHA256=")[^"]+' /tmp/Dockerfile.content)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          actual_sha256=$(curl -fsSL "https://github.com/DNSCrypt/dnscrypt-proxy/archive/${version}.tar.gz" | sha256sum | awk '{print $1}')
+          if [ "$actual_sha256" != "$pinned_sha256" ]; then
+            echo "::error::SHA256 mismatch for ${version}: Dockerfile pins ${pinned_sha256}, archive is actually ${actual_sha256}. Refusing to tag."
+            exit 1
+          fi
+
+      - name: Check tag doesn't already exist
+        id: exists
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          if gh api "repos/${{ github.repository }}/git/ref/tags/v${version}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create verified tag via REST API
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          content_sha="${{ steps.commit.outputs.sha }}"
+          now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          tag_sha=$(gh api "repos/${{ github.repository }}/git/tags" --input - <<EOF | jq -r .sha
+          {
+            "tag": "v${version}",
+            "message": "v${version}",
+            "object": "${content_sha}",
+            "type": "commit",
+            "tagger": { "name": "github-actions[bot]", "email": "github-actions[bot]@users.noreply.github.com", "date": "${now}" }
+          }
+          EOF
+          )
+
+          gh api "repos/${{ github.repository }}/git/refs" \
+            -f ref="refs/tags/v${version}" \
+            -f sha="${tag_sha}"

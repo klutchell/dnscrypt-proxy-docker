@@ -1,0 +1,129 @@
+name: Bump dnscrypt-proxy
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "dnscrypt-proxy version to bump to (e.g. 2.1.18). Leave empty to auto-detect the latest upstream release."
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Determine current and target version
+        id: versions
+        run: |
+          current=$(grep -oP '(?<=^ARG DNSCRYPT_PROXY_VERSION=)\S+' Dockerfile)
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+
+          if [ -n "${{ inputs.version }}" ]; then
+            target="${{ inputs.version }}"
+          else
+            target=$(curl -fsSL https://api.github.com/repos/DNSCrypt/dnscrypt-proxy/releases/latest | jq -r .tag_name)
+          fi
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+          echo "Current: $current, target: $target"
+
+          # only proceed if target is strictly newer than current
+          newest=$(printf '%s\n%s' "$current" "$target" | sort -V | tail -n1)
+          if [ "$current" = "$target" ] || [ "$newest" != "$target" ]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check for an existing bump branch/PR
+        if: steps.versions.outputs.up_to_date == 'false'
+        id: existing
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          target="${{ steps.versions.outputs.target }}"
+          count=$(gh pr list --repo "${{ github.repository }}" --state open --search "head:bump/dnscrypt-proxy-${target}" --json number --jq 'length')
+          echo "exists=$([ "$count" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Compute upstream SHA256
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        id: hash
+        run: |
+          target="${{ steps.versions.outputs.target }}"
+          url="https://github.com/DNSCrypt/dnscrypt-proxy/archive/${target}.tar.gz"
+          curl -fsSL "$url" -o /tmp/dnscrypt-proxy.tar.gz
+          sha256=$(sha256sum /tmp/dnscrypt-proxy.tar.gz | awk '{print $1}')
+          echo "sha256=$sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Update Dockerfile
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        run: |
+          target="${{ steps.versions.outputs.target }}"
+          sha="${{ steps.hash.outputs.sha256 }}"
+          sed -i \
+            -e "s|^ARG DNSCRYPT_PROXY_VERSION=.*|ARG DNSCRYPT_PROXY_VERSION=${target}|" \
+            -e "s|^# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/.*|# https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/${target}|" \
+            -e "s|^# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/.*|# sha256sum of https://github.com/DNSCrypt/dnscrypt-proxy/archive/${target}.tar.gz|" \
+            -e "s|^ARG DNSCRYPT_PROXY_SHA256=.*|ARG DNSCRYPT_PROXY_SHA256=\"${sha}\"|" \
+            Dockerfile
+
+      - name: Set up Docker Buildx
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Regenerate example configs
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: docker build . --target conf-example --output ./config
+
+      - name: Sanity build
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: docker build . --tag dnscrypt-proxy:bump-check
+
+      - name: Open pull request
+        if: steps.versions.outputs.up_to_date == 'false' && steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          target="${{ steps.versions.outputs.target }}"
+          branch="bump/dnscrypt-proxy-${target}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add Dockerfile config/example-*
+          git commit -m "Bump dnscrypt-proxy to ${target}"
+          git push origin "$branch"
+
+          printf '%s\n' \
+            "Automated bump to [dnscrypt-proxy ${target}](https://github.com/DNSCrypt/dnscrypt-proxy/releases/tag/${target})." \
+            "" \
+            "SHA256 verified and computed on this runner, \`config/example-*\` regenerated via \`docker build --target conf-example\`, and a sanity build passed. See [CONTRIBUTING.md](https://github.com/${{ github.repository }}/blob/main/CONTRIBUTING.md#packaging-new-dnscrypt-proxy-releases) for the process this follows." \
+            "" \
+            "Tagging the release remains a separate, gated step that runs after this PR merges." \
+            > /tmp/pr-body.md
+
+          gh pr create \
+            --repo "${{ github.repository }}" \
+            --title "Bump dnscrypt-proxy to ${target}" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "$branch"

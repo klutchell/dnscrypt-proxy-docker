@@ -38,7 +38,23 @@ services:
 
         docker exec $${server_id} dnscrypt-proxy -version
 
-        sleep 5
+        # Wait until the proxy answers instead of guessing at a duration.
+        # Startup is network-bound: dnscrypt-proxy fetches the resolver list,
+        # verifies its signature, then probes every server in it before one is
+        # usable. A fixed sleep raced that and failed about half the time.
+        ready=
+        attempt=0
+        while [ $${attempt} -lt 30 ]
+        do
+          if docker exec $${server_id} dnsprobe -timeout=2s example.com 127.0.0.1:5053
+          then
+            ready=1
+            break
+          fi
+          attempt=$$((attempt + 1))
+          sleep 2
+        done
+        test -n "$${ready}"
 
         docker exec $${server_id} dnsprobe -timeout=10s dnssec.works 127.0.0.1:5053
         ! docker exec $${server_id} dnsprobe foo.local 127.0.0.1:5053

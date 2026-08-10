@@ -1,3 +1,6 @@
+ARG NONROOT_UID=65532
+ARG NONROOT_GID=65532
+
 FROM --platform=$BUILDPLATFORM golang:1.26.5-alpine3.24@sha256:0178a641fbb4858c5f1b48e34bdaabe0350a330a1b1149aabd498d0699ff5fb2 AS build
 
 WORKDIR /src
@@ -30,8 +33,8 @@ RUN cp -a /src/dnscrypt-proxy/example-* ./ \
 
 COPY config/dnscrypt-proxy.toml ./
 
-ARG NONROOT_UID=65532
-ARG NONROOT_GID=65532
+ARG NONROOT_UID
+ARG NONROOT_GID
 
 RUN addgroup -S -g ${NONROOT_GID} nonroot \
 	&& adduser -S -g nonroot -h /home/nonroot -u ${NONROOT_UID} -D -G nonroot nonroot
@@ -63,7 +66,9 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build --chown=nonroot:nonroot /home/nonroot /home/nonroot
 COPY --from=build --chown=nonroot:nonroot /config /config
 
-USER nonroot
+ARG NONROOT_UID
+
+USER ${NONROOT_UID}
 
 ENV PATH=$PATH:/usr/local/bin
 

@@ -55,8 +55,8 @@ docker run -p 53:5053/tcp -p 53:5053/udp klutchell/dnscrypt-proxy
 
 # run dnscrypt proxy server with configuration mounted from a host directory
 # note that the files in the configuration directory '/path/to/config' must be
-# readable by world, or owned by nobody:nogroup, and the directory itself must be
-# writeable by world, or owned by nobody:nogroup
+# readable by world, or owned by nonroot:nonroot (65532:65532), and the directory
+# itself must be writeable by world, or owned by nonroot:nonroot (65532:65532)
 docker run -p 53:5053/udp -v /path/to/config:/config klutchell/dnscrypt-proxy
 ```
 

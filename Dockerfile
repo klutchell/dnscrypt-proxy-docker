@@ -1,7 +1,7 @@
 ARG NONROOT_UID=65532
 ARG NONROOT_GID=65532
 
-FROM --platform=$BUILDPLATFORM golang:1.26.6-alpine3.24@sha256:af8d6740070b8906d12eae1c3e3ea0957fb63f492051ea05e354c38ef9fe88df AS build
+FROM --platform=$BUILDPLATFORM golang:1.26.6-alpine3.24@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83 AS build
 
 WORKDIR /src
 
@@ -46,7 +46,7 @@ FROM scratch AS conf-example
 COPY --from=build /config/example-* /
 
 # ----------------------------------------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.26.6-alpine3.24@sha256:af8d6740070b8906d12eae1c3e3ea0957fb63f492051ea05e354c38ef9fe88df AS probe
+FROM --platform=$BUILDPLATFORM golang:1.26.6-alpine3.24@sha256:3889b425f035be855a72fb4755265311293b6d414521f0a519d819df32222d83 AS probe
 
 WORKDIR /src/dnsprobe
 
